@@ -21,6 +21,35 @@
  *   SOFTWARE.
  */
 
-import { omniboxListener } from "./omnibox";
+export const Messages = {
+  // Emoji: https://www.w3schools.com/charsets/ref_emoji.asp
+  savingShortlink: "<span>&#9989;</span> Saving your short link ...",
+  duplicateExists: "<span>&#9997;</span> Replacing existing shortlink ...",
+}
 
-chrome.omnibox.onInputEntered.addListener(omniboxListener);
+export const Delays = {
+  preparing: 1500,
+  done: 2500,
+  autoClose: 2500,
+}
+
+// This is an external JS function, loaded in popup.html.
+declare function nativeToast(options: any): void;
+
+export function showToast(text: string, delay: number, type: string): void {
+  nativeToast({
+    message: text,
+    position: "north",
+    timeout: delay /* Self destruct in 5 sec. */,
+    type: type,
+    rounded: true,
+    closeOnClick: true,
+  })
+}
+
+/** Set a timeout to close the window after short delay. */
+export function triggerAutoCloseWindowWithDelay() {
+  setTimeout(() => {
+    window.close()
+  }, Delays.autoClose)
+}
