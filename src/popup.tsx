@@ -23,7 +23,6 @@
 
 import React, { useEffect, useState } from "react"
 import { createRoot } from "react-dom/client"
-import { changeBackground } from "./message_passing"
 
 const Popup = () => {
   const [count, setCount] = useState(0)
@@ -48,7 +47,6 @@ const Popup = () => {
       <button onClick={() => setCount(count + 1)} style={{ marginRight: "5px" }}>
         count up
       </button>
-      <button onClick={changeBackground}>change background</button>
     </>
   )
 }
@@ -60,3 +58,4 @@ root.render(
     <Popup />
   </React.StrictMode>
 )
+

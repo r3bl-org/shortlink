@@ -1,32 +1,42 @@
 {
   "manifest_version": 3,
-  "name": "Chrome Extension TypeScript Starter",
-  "description": "Chrome Extension, TypeScript, Visual Studio Code",
-  "version": "1.0",
-  "options_ui": {
-    "page": "options.html"
+  "name": "R3BL Shortlink React",
+  "description": "Make go links",
+  "version": "1.3",
+  "icons": {
+    "16": "icon16.png",
+    "32": "icon32.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
   },
   "action": {
+    "default_title": "Click to make go link for URL",
+    "default_popup": "popup.html",
     "default_icon": {
-      "16": "icon.png"
-    },
-    "default_popup": "popup.html"
-  },
-  "content_scripts": [
-    {
-      "matches": [
-        "<all_urls>"
-      ],
-      "js": [
-        "js/vendor.js",
-        "js/content_script.js"
-      ]
+      "16": "icon16.png",
+      "32": "icon32.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
     }
-  ],
+  },
+  "omnibox": {
+    "keyword": "go"
+  },
   "background": {
     "service_worker": "js/background.js"
   },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Alt+L",
+        "mac": "Alt+L"
+      },
+      "description": "Make a go link for URL in address bar"
+    }
+  },
   "permissions": [
+    "activeTab",
+    "tabs",
     "storage"
   ],
   "host_permissions": [
