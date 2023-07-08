@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "R3BL Shortlink React",
+  "name": "R3BL Shortlink",
   "description": "Make go links",
   "version": "1.3",
   "icons": {
@@ -38,8 +38,5 @@
     "activeTab",
     "tabs",
     "storage"
-  ],
-  "host_permissions": [
-    "<all_urls>"
   ]
 }

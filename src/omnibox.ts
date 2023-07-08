@@ -23,21 +23,21 @@
 
 export function omniboxListener(shortlinkName: string) {
   chrome.storage.sync.get(shortlinkName, (result) => {
-    const urls: (string | undefined)[] = result[shortlinkName];
+    const urls: (string | undefined)[] = result[shortlinkName]
 
     // Found shortlink, open all urls in new tabs.
     if (urls !== undefined && urls.length > 0) {
       for (const url of urls) {
         if (url === undefined) {
-          continue;
+          continue
         }
-        chrome.tabs.create({ url: url });
+        chrome.tabs.create({ url: url })
       }
     }
     // No shortlink found, do nothing.
     else {
-      console.log(`Shortlink '${shortlinkName}' does not exist`);
-      return;
+      console.log(`Shortlink '${shortlinkName}' does not exist`)
+      return
     }
-  });
+  })
 }

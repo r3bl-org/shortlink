@@ -28,8 +28,8 @@ const srcDir = path.join(__dirname, "..", "src");
 
 module.exports = {
     entry: {
-      popup: path.join(srcDir, 'popup.tsx'),
-      background: path.join(srcDir, 'background.ts'),
+        popup: path.join(srcDir, 'popup.tsx'),
+        background: path.join(srcDir, 'background.ts'),
     },
     output: {
         path: path.join(__dirname, "../dist/js"),
@@ -39,7 +39,7 @@ module.exports = {
         splitChunks: {
             name: "vendor",
             chunks(chunk) {
-              return chunk.name !== 'background';
+                return chunk.name !== 'background';
             }
         },
     },
@@ -49,6 +49,10 @@ module.exports = {
                 test: /\.tsx?$/,
                 use: "ts-loader",
                 exclude: /node_modules/,
+            },
+            {
+                test: /\.css$/i,
+                use: ["style-loader", "css-loader"],
             },
         ],
     },

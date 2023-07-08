@@ -23,39 +23,126 @@
 
 import React, { useEffect, useState } from "react"
 import { createRoot } from "react-dom/client"
+import { getAllShortlinks, runWithSelectedTabs, saveShortlink } from "./storage"
+import "./style.css"
+import { Delays, Messages, showToast, triggerAutoCloseWindowWithDelay } from "./toast"
 
-const Popup = () => {
-  const [count, setCount] = useState(0)
-  const [currentURL, setCurrentURL] = useState<string>()
+function Popup() {
+  const [allShortlinks, setAllShortlinks] = useState<string[]>([])
+  const [userInputText, setUserInputText] = useState<string>("")
 
+  // List all shortlinks.
   useEffect(() => {
-    chrome.action.setBadgeText({ text: count.toString() })
-  }, [count])
-
-  useEffect(() => {
-    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-      setCurrentURL(tabs[0].url)
+    getAllShortlinks().then((allShortlinks) => {
+      setAllShortlinks(allShortlinks)
+      console.log("atStart: setAllShortlinksString with:", `'${allShortlinks}'`)
+      console.log("atStart: setCount with:", `'${allShortlinks.length}'`)
     })
   }, [])
 
+  // Listen to changes in storage.
+  useEffect(() => {
+    chrome.storage.onChanged.addListener((changes, namespace) => {
+      getAllShortlinks().then((allShortlinks) => {
+        setAllShortlinks(allShortlinks)
+        console.log("onChange: setAllShortlinksString with:", `'${allShortlinks}'`)
+        console.log("onChange: setCount with:", `'${allShortlinks.length}'`)
+      })
+    })
+  }, [])
+
+  // Update count badge when allShortlinks changes.
+  useEffect(() => {
+    chrome.action.setBadgeText({ text: allShortlinks.length.toString() })
+  }, [allShortlinks])
+
   return (
-    <>
-      <ul style={{ minWidth: "700px" }}>
-        <li>Current URL: {currentURL}</li>
-        <li>Current Time: {new Date().toLocaleTimeString()}</li>
-      </ul>
-      <button onClick={() => setCount(count + 1)} style={{ marginRight: "5px" }}>
-        count up
-      </button>
-    </>
+    <div id="app">
+      <input
+        autoFocus={true}
+        id="shortlink-input"
+        placeholder='Please type your new shortlink, or "delete <shortlink>"'
+        onChange={(event) => handleOnChange(event, setUserInputText)}
+        onKeyDown={(event) => handleEnterKey(event, userInputText)}
+      />
+
+      <div id="links">
+        {allShortlinks.length === 0
+          ? "You don't have any shortlinks yet 🤷"
+          : `Your shortlinks: ${allShortlinks}`}
+        <br />
+        Count: {allShortlinks.length}
+      </div>
+    </div>
   )
 }
 
-const root = createRoot(document.getElementById("root")!)
+function handleOnChange(
+  event: React.ChangeEvent<HTMLInputElement>,
+  setUserInputText: React.Dispatch<React.SetStateAction<string>>
+) {
+  const typedText = event.target.value
+  console.log("typedText:", typedText)
+  setUserInputText(typedText)
+}
 
-root.render(
-  <React.StrictMode>
-    <Popup />
-  </React.StrictMode>
-)
+function handleEnterKey(event: React.KeyboardEvent<HTMLInputElement>, userInputText: string) {
+  if (event.key !== "Enter") return
 
+  console.log("typed: ", `'${userInputText}'`)
+
+  // Nothing typed.
+  if (userInputText !== undefined && userInputText.length === 0) {
+    showToast("Please type a shortlink name", Delays.done, "warning")
+    chrome.storage.sync.remove("")
+    return
+  }
+
+  // Delete shortlink.
+  if (userInputText.startsWith("delete")) {
+    const shortlinkArg = userInputText.split(" ")[1]
+    console.log("shortlinkName", userInputText)
+    console.log("shortlinkArg", shortlinkArg)
+    debugger
+    // No arg provided.
+    if (shortlinkArg === undefined || shortlinkArg.length === 0) {
+      showToast(`Please provide a shortlink name to delete`, Delays.done, "warning")
+      return
+    }
+    // Arg provided.
+    else {
+      chrome.storage.sync.remove(shortlinkArg)
+      showToast(`Deleting shortlink ${shortlinkArg}`, Delays.done, "info")
+      triggerAutoCloseWindowWithDelay()
+      return
+    }
+  }
+
+  // Save shortlink.
+  runWithSelectedTabs((urls) => {
+    // Existing shortlink exists.
+    chrome.storage.sync.get(userInputText, (result) => {
+      const value = result[userInputText]
+      if (value !== undefined && value.length > 0) {
+        showToast(Messages.duplicateExists, Delays.preparing, "info")
+        setTimeout(() => {
+          saveShortlink(userInputText, urls)
+        }, Delays.preparing)
+      } else {
+        saveShortlink(userInputText, urls)
+      }
+    })
+  })
+}
+
+function main() {
+  const root = createRoot(document.getElementById("root")!)
+
+  root.render(
+    <React.StrictMode>
+      <Popup />
+    </React.StrictMode>
+  )
+}
+
+main()

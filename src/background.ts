@@ -21,6 +21,6 @@
  *   SOFTWARE.
  */
 
-import { omniboxListener } from "./omnibox";
+import { omniboxListener } from "./omnibox"
 
-chrome.omnibox.onInputEntered.addListener(omniboxListener);
+chrome.omnibox.onInputEntered.addListener(omniboxListener)

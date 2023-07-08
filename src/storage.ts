@@ -21,35 +21,39 @@
  *   SOFTWARE.
  */
 
-export const Messages = {
-  // Emoji: https://www.w3schools.com/charsets/ref_emoji.asp
-  savingShortlink: "<span>&#9989;</span> Saving your short link ...",
-  duplicateExists: "<span>&#9997;</span> Replacing existing shortlink ...",
+import { Delays, Messages, showToast, triggerAutoCloseWindowWithDelay } from "./toast"
+
+export type Urls = (string | undefined)[]
+
+export async function getAllShortlinks(): Promise<string[]> {
+  const result: any = await chrome.storage.sync.get(null)
+
+  const allShortlinks: string[] = []
+  for (const key in result) {
+    const value: string[] = result[key]
+    console.log(`${key}: ${value}`)
+    allShortlinks.push(key)
+  }
+
+  return allShortlinks
 }
 
-export const Delays = {
-  preparing: 1500,
-  done: 2500,
-  autoClose: 2500,
-}
-
-// This is an external JS function, loaded in popup.html.
-declare function nativeToast(options: any): void
-
-export function showToast(text: string, delay: number, type: string): void {
-  nativeToast({
-    message: text,
-    position: "north",
-    timeout: delay /* Self destruct in 5 sec. */,
-    type: type,
-    rounded: true,
-    closeOnClick: true,
+export function saveShortlink(shortlinkName: string, urls: Urls) {
+  let newShortlinkObject = {
+    [shortlinkName]: urls,
+  }
+  chrome.storage.sync.set(newShortlinkObject).then(() => {
+    showToast(Messages.savingShortlink, Delays.done, "success")
+    triggerAutoCloseWindowWithDelay()
   })
 }
 
-/** Set a timeout to close the window after short delay. */
-export function triggerAutoCloseWindowWithDelay() {
-  setTimeout(() => {
-    window.close()
-  }, Delays.autoClose)
+// Tabs API: https://developer.chrome.com/docs/extensions/reference/tabs/
+export function runWithSelectedTabs(fun: (urls: Urls) => void) {
+  chrome.tabs.query({ currentWindow: true }, (tabs) => {
+    // Only get the selected (highlighted) tabs.
+    const highlightedTabs = tabs.filter((tab) => tab.highlighted)
+    const urls = highlightedTabs.map((tab) => tab.url)
+    fun(urls)
+  })
 }

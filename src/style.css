@@ -21,35 +21,56 @@
  *   SOFTWARE.
  */
 
-export const Messages = {
-  // Emoji: https://www.w3schools.com/charsets/ref_emoji.asp
-  savingShortlink: "<span>&#9989;</span> Saving your short link ...",
-  duplicateExists: "<span>&#9997;</span> Replacing existing shortlink ...",
+:root {
+  --default-margin: 8px;
+  --default-padding: 8px;
+  --default-border-radius: 6px;
+  --default-border-width: 2px solid rgb(119, 129, 147);
 }
 
-export const Delays = {
-  preparing: 1500,
-  done: 2500,
-  autoClose: 2500,
+body {
+  width: 80ch;
+  height: 100%;
+  margin: var(--default-margin);
+  padding: var(--default-padding);
+  font-family: "Iosevka", monospace;
+  background: #5f6176;
+  color: aliceblue;
 }
 
-// This is an external JS function, loaded in popup.html.
-declare function nativeToast(options: any): void
-
-export function showToast(text: string, delay: number, type: string): void {
-  nativeToast({
-    message: text,
-    position: "north",
-    timeout: delay /* Self destruct in 5 sec. */,
-    type: type,
-    rounded: true,
-    closeOnClick: true,
-  })
+/* Flex container. */
+#app {
+  display: flex;
+  flex-direction: column;
 }
 
-/** Set a timeout to close the window after short delay. */
-export function triggerAutoCloseWindowWithDelay() {
-  setTimeout(() => {
-    window.close()
-  }, Delays.autoClose)
+/* Flex children. */
+#shortlink-input {
+  flex-grow: 1;
+  border-radius: var(--default-border-radius);
+  border: var(--default-border-width);
+  margin: var(--default-margin);
+  padding: var(--default-padding);
+  background: #1c2c44;
+  color: #f8f8f2;
+  outline: none;
+}
+
+*::placeholder {
+  color: #96b2c2;
+}
+
+/* Flex children. */
+#links {
+  flex-grow: 1;
+  border-radius: var(--default-border-radius);
+  border: var(--default-border-width);
+  margin: var(--default-margin);
+  padding: var(--default-padding);
+}
+
+h1 {
+  border-radius: var(--default-border-radius);
+  border: var(--default-border-width);
+  padding: var(--default-padding);
 }
