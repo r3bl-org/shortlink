@@ -74,13 +74,18 @@ function Popup() {
         ) : (
           <>
             <b>Your shortlinks: </b>
-            {allShortlinks.map((shortlink) => (
-              <code className="shortlink">{shortlink.name}</code>
-            ))}
+            <br />
+            <div className="shortlink-container">
+              {allShortlinks.map((shortlink) => (
+                <code key={shortlink.name} className="shortlink">
+                  {shortlink.name}
+                </code>
+              ))}
+            </div>
           </>
         )}
         <br />
-        Count: {allShortlinks.length}
+        <b>Count: {allShortlinks.length}</b>
       </div>
     </div>
   )

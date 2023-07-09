@@ -38,10 +38,16 @@ body {
   color: aliceblue;
 }
 
+.shortlink-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
 .shortlink {
-  padding: calc(var(--default-padding) / 2);
-  margin: calc(var(--default-margin) / 2);
+  flex-grow: 1;
   border: 1px dashed #85879d;
+  padding: calc(var(--default-padding) / 2);
 }
 
 /* Flex container. */
