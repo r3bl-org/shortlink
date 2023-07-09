@@ -21,18 +21,14 @@
  *   SOFTWARE.
  */
 
+import { Urls } from "./storage"
+
 export function omniboxListener(shortlinkName: string) {
   chrome.storage.sync.get(shortlinkName, (result) => {
-    const urls: (string | undefined)[] = result[shortlinkName]
-
+    const urls: Urls = result[shortlinkName]
     // Found shortlink, open all urls in new tabs.
     if (urls !== undefined && urls.length > 0) {
-      for (const url of urls) {
-        if (url === undefined) {
-          continue
-        }
-        chrome.tabs.create({ url: url })
-      }
+      openUrlsInTabs(urls)
     }
     // No shortlink found, do nothing.
     else {
@@ -40,4 +36,15 @@ export function omniboxListener(shortlinkName: string) {
       return
     }
   })
+}
+
+export function openUrlsInTabs(urls: Urls) {
+  if (urls === undefined || urls.length === 0) return
+
+  for (const url of urls) {
+    if (url === undefined) {
+      continue
+    }
+    chrome.tabs.create({ url: url })
+  }
 }

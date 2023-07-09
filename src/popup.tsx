@@ -23,7 +23,8 @@
 
 import React, { useEffect, useState } from "react"
 import { createRoot } from "react-dom/client"
-import { getAllShortlinks, runWithSelectedTabs, saveShortlink } from "./storage"
+import { openUrlsInTabs } from "./omnibox"
+import { Urls, getAllShortlinks, runWithSelectedTabs, saveShortlink } from "./storage"
 import "./style.css"
 import { Delays, Messages, showToast, triggerAutoCloseWindowWithDelay } from "./toast"
 
@@ -61,7 +62,7 @@ function Popup() {
       <input
         autoFocus={true}
         id="shortlink-input"
-        placeholder='Please type your new shortlink, or "delete <shortlink>"'
+        placeholder='Type your new shortlink or "open/o or delete/d <shortlink>" then Press Enter'
         onChange={(event) => handleOnChange(event, setUserInputText)}
         onKeyDown={(event) => handleEnterKey(event, userInputText)}
       />
@@ -98,27 +99,35 @@ function handleEnterKey(event: React.KeyboardEvent<HTMLInputElement>, userInputT
     return
   }
 
-  // Delete shortlink.
-  if (userInputText.startsWith("delete")) {
-    const shortlinkArg = userInputText.split(" ")[1]
-    console.log("shortlinkName", userInputText)
-    console.log("shortlinkArg", shortlinkArg)
-    debugger
-    // No arg provided.
-    if (shortlinkArg === undefined || shortlinkArg.length === 0) {
-      showToast(`Please provide a shortlink name to delete`, Delays.done, "warning")
-      return
-    }
-    // Arg provided.
-    else {
-      chrome.storage.sync.remove(shortlinkArg)
-      showToast(`Deleting shortlink ${shortlinkArg}`, Delays.done, "info")
-      triggerAutoCloseWindowWithDelay()
-      return
-    }
+  // Delete shortlink using `delete`.
+  if (userInputText.startsWith("delete ")) {
+    const shortlinkArg = userInputText.replace("delete ", "").trim()
+    deleteShortlink(shortlinkArg)
+    return
   }
 
-  // Save shortlink.
+  // Delete shortlink using `d`.
+  if (userInputText.startsWith("d ")) {
+    const shortlinkArg = userInputText.replace("d ", "").trim()
+    deleteShortlink(shortlinkArg)
+    return
+  }
+
+  // Open shortlink using `open`.
+  if (userInputText.startsWith("open ")) {
+    const shortlinkArg = userInputText.replace("open ", "").trim()
+    openShortlink(shortlinkArg)
+    return
+  }
+
+  // Open shortlink using `o`.
+  if (userInputText.startsWith("o ")) {
+    const shortlinkArg = userInputText.replace("o ", "").trim()
+    openShortlink(shortlinkArg)
+    return
+  }
+
+  // Actually save the shortlink.
   runWithSelectedTabs((urls) => {
     // Existing shortlink exists.
     chrome.storage.sync.get(userInputText, (result) => {
@@ -133,6 +142,29 @@ function handleEnterKey(event: React.KeyboardEvent<HTMLInputElement>, userInputT
       }
     })
   })
+}
+
+function openShortlink(shortlinkArg: string) {
+  chrome.storage.sync.get(shortlinkArg, (result) => {
+    const urls: Urls = result[shortlinkArg]
+    openUrlsInTabs(urls)
+  })
+}
+
+function deleteShortlink(shortlinkArg: string) {
+  console.log("shortlinkArg", shortlinkArg)
+  // No arg provided.
+  if (shortlinkArg === undefined || shortlinkArg.length === 0) {
+    showToast(`Please provide a shortlink name to delete`, Delays.done, "warning")
+    return
+  }
+  // Arg provided.
+  else {
+    chrome.storage.sync.remove(shortlinkArg)
+    showToast(`Deleting shortlink ${shortlinkArg}`, Delays.done, "info")
+    triggerAutoCloseWindowWithDelay()
+    return
+  }
 }
 
 function main() {

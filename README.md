@@ -1,8 +1,6 @@
-# Chrome Extension TypeScript Starter
+# Shortlink chrome extension
 
-![build](https://github.com/chibat/chrome-extension-typescript-starter/workflows/build/badge.svg)
-
-Chrome Extension, TypeScript and Visual Studio Code
+Chrome extension written in Typescript and React.
 
 ## Prerequisites
 
@@ -18,12 +16,10 @@ Chrome Extension, TypeScript and Visual Studio Code
 * Webpack
 * React
 * Jest
-* Example Code
+* Code
     * Chrome Storage
-    * Options Version 2
-    * content script
-    * count up badge number
-    * background
+    * Badge number
+    * Background script 
 
 ## Project Structure
 
@@ -38,7 +34,7 @@ Chrome Extension, TypeScript and Visual Studio Code
 npm install
 ```
 
-## Import as Visual Studio Code project
+## Open in Visual Studio Code
 
 ...
 
