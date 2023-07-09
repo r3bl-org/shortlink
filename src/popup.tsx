@@ -23,17 +23,23 @@
 
 import React, { useEffect, useState } from "react"
 import { createRoot } from "react-dom/client"
-import { openUrlsInTabs } from "./omnibox"
-import { getAllShortlinks, runWithSelectedTabs, saveShortlink } from "./storage"
+import { parseUserInputTextIntoCommand } from "./command"
+import {
+  deleteShortlink,
+  getAllShortlinks,
+  openShortlink as goToShortlink,
+  tryToSaveShortlink,
+} from "./storage"
 import "./style.css"
-import { Delays, Messages, showToast, triggerAutoCloseWindowWithDelay } from "./toast"
-import { Shortlink, Url } from "./types"
+import { Shortlink } from "./types"
 
 function Popup() {
   const [allShortlinks, setAllShortlinks] = useState<Shortlink[]>([])
   const [userInputText, setUserInputText] = useState<string>("")
 
   // List all shortlinks.
+  // Note: To use async / await in useEffect, we need to create a function inside
+  // useEffect. So just using promises instead.
   useEffect(() => {
     getAllShortlinks().then((allShortlinks) => {
       setAllShortlinks(allShortlinks)
@@ -43,6 +49,8 @@ function Popup() {
   }, [])
 
   // Listen to changes in storage.
+  // Note: To use async / await in useEffect, we need to create a function inside
+  // useEffect. So just using promises instead.
   useEffect(() => {
     chrome.storage.onChanged.addListener((changes, namespace) => {
       getAllShortlinks().then((allShortlinks) => {
@@ -100,83 +108,30 @@ function handleOnChange(
   setUserInputText(typedText)
 }
 
-function handleEnterKey(event: React.KeyboardEvent<HTMLInputElement>, userInputText: string) {
+async function handleEnterKey(event: React.KeyboardEvent<HTMLInputElement>, userInputText: string) {
   if (event.key !== "Enter") return
 
   console.log("typed: ", `'${userInputText}'`)
 
-  // Nothing typed.
-  if (userInputText !== undefined && userInputText.length === 0) {
-    showToast("Please type a shortlink name", Delays.done, "warning")
-    chrome.storage.sync.remove("")
-    return
-  }
+  const command = parseUserInputTextIntoCommand(userInputText)
 
-  // Delete shortlink using `delete`.
-  if (userInputText.startsWith("delete ")) {
-    const shortlinkArg = userInputText.replace("delete ", "").trim()
-    deleteShortlink(shortlinkArg)
-    return
-  }
-
-  // Delete shortlink using `d`.
-  if (userInputText.startsWith("d ")) {
-    const shortlinkArg = userInputText.replace("d ", "").trim()
-    deleteShortlink(shortlinkArg)
-    return
-  }
-
-  // Open shortlink using `go`.
-  if (userInputText.startsWith("go ")) {
-    const shortlinkArg = userInputText.replace("go ", "").trim()
-    openShortlink(shortlinkArg)
-    return
-  }
-
-  // Open shortlink using `g`.
-  if (userInputText.startsWith("g ")) {
-    const shortlinkArg = userInputText.replace("g ", "").trim()
-    openShortlink(shortlinkArg)
-    return
-  }
-
-  // Actually save the shortlink.
-  runWithSelectedTabs((urls) => {
-    // Existing shortlink exists.
-    chrome.storage.sync.get(userInputText, (result) => {
-      const value = result[userInputText]
-      if (value !== undefined && value.length > 0) {
-        showToast(Messages.duplicateExists, Delays.preparing, "info")
-        setTimeout(() => {
-          saveShortlink(userInputText, urls)
-        }, Delays.preparing)
-      } else {
-        saveShortlink(userInputText, urls)
-      }
-    })
-  })
-}
-
-function openShortlink(shortlinkArg: string) {
-  chrome.storage.sync.get(shortlinkArg, (result) => {
-    const urls: Url = result[shortlinkArg]
-    openUrlsInTabs(urls)
-  })
-}
-
-function deleteShortlink(shortlinkArg: string) {
-  console.log("shortlinkArg", shortlinkArg)
-  // No arg provided.
-  if (shortlinkArg === undefined || shortlinkArg.length === 0) {
-    showToast(`Please provide a shortlink name to delete`, Delays.done, "warning")
-    return
-  }
-  // Arg provided.
-  else {
-    chrome.storage.sync.remove(shortlinkArg)
-    showToast(`Deleting shortlink ${shortlinkArg}`, Delays.done, "info")
-    triggerAutoCloseWindowWithDelay()
-    return
+  switch (command.kind) {
+    case "save": {
+      tryToSaveShortlink(userInputText)
+      return
+    }
+    case "delete": {
+      deleteShortlink(command.shortlinkName)
+      return
+    }
+    case "go": {
+      goToShortlink(command.shortlinkName)
+      return
+    }
+    case "nothing": {
+      tryToSaveShortlink(userInputText)
+      return
+    }
   }
 }
 

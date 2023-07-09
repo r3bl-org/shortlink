@@ -21,6 +21,7 @@
  *   SOFTWARE.
  */
 
+import { openUrlsInTabs } from "./omnibox"
 import { Delays, Messages, showToast, triggerAutoCloseWindowWithDelay } from "./toast"
 import { Shortlink, Url } from "./types"
 
@@ -40,7 +41,7 @@ export async function getAllShortlinks(): Promise<Shortlink[]> {
   return allShortlinks
 }
 
-export function saveShortlink(shortlinkName: string, urls: Url) {
+export function actuallySaveShortlink(shortlinkName: string, urls: Url) {
   let newShortlinkObject = {
     [shortlinkName]: urls,
   }
@@ -50,12 +51,45 @@ export function saveShortlink(shortlinkName: string, urls: Url) {
   })
 }
 
-// Tabs API: https://developer.chrome.com/docs/extensions/reference/tabs/
-export function runWithSelectedTabs(fun: (urls: Url) => void) {
-  chrome.tabs.query({ currentWindow: true }, (tabs) => {
-    // Only get the selected (highlighted) tabs.
-    const highlightedTabs = tabs.filter((tab) => tab.highlighted)
-    const urls = highlightedTabs.map((tab) => tab.url)
-    fun(urls)
+export async function tryToSaveShortlink(userInputText: string) {
+  // Only get the selected (highlighted) tabs.
+  // Tabs API: https://developer.chrome.com/docs/extensions/reference/tabs/
+  const tabs = await chrome.tabs.query({ currentWindow: true })
+  const highlightedTabs = tabs.filter((tab) => tab.highlighted)
+  const urls = highlightedTabs.map((tab) => tab.url)
+
+  // Save the urls using the shortlink name: userInputText.
+  const result = await chrome.storage.sync.get(userInputText)
+  const value = result[userInputText]
+  if (value !== undefined && value.length > 0) {
+    showToast(Messages.duplicateExists, Delays.preparing, "info")
+    setTimeout(() => {
+      actuallySaveShortlink(userInputText, urls)
+    }, Delays.preparing)
+  } else {
+    actuallySaveShortlink(userInputText, urls)
+  }
+}
+
+export function openShortlink(shortlinkArg: string) {
+  chrome.storage.sync.get(shortlinkArg, (result) => {
+    const urls: Url = result[shortlinkArg]
+    openUrlsInTabs(urls)
   })
+}
+
+export function deleteShortlink(shortlinkArg: string) {
+  console.log("shortlinkArg", shortlinkArg)
+  // No arg provided.
+  if (shortlinkArg === undefined || shortlinkArg.length === 0) {
+    showToast(`Please provide a shortlink name to delete`, Delays.done, "warning")
+    return
+  }
+  // Arg provided.
+  else {
+    chrome.storage.sync.remove(shortlinkArg)
+    showToast(`Deleting shortlink ${shortlinkArg}`, Delays.done, "info")
+    triggerAutoCloseWindowWithDelay()
+    return
+  }
 }
