@@ -43,10 +43,10 @@ export type CommandNothing = {
 export type Command = CommandDelete | CommandGo | CommandSave | CommandNothing
 
 export const CommandName = {
-  Go: "go",
-  GoShort: "g",
-  Delete: "delete",
-  DeleteShort: "d",
+  Go: "go ",
+  GoShort: "g ",
+  Delete: "delete ",
+  DeleteShort: "d ",
 }
 
 export function parseUserInputTextIntoCommand(userInputText: string): Command {
@@ -99,3 +99,4 @@ export function parseUserInputTextIntoCommand(userInputText: string): Command {
     shortlinkName: userInputText,
   }
 }
+
