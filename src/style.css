@@ -25,7 +25,7 @@
   --default-margin: 8px;
   --default-padding: 8px;
   --default-border-radius: 6px;
-  --default-border-width: 2px solid rgb(119, 129, 147);
+  --default-border-style: 2px solid rgb(119, 129, 147);
 }
 
 body {
@@ -38,6 +38,12 @@ body {
   color: aliceblue;
 }
 
+.shortlink {
+  padding: calc(var(--default-padding) / 2);
+  margin: calc(var(--default-margin) / 2);
+  border: 1px dashed #85879d;
+}
+
 /* Flex container. */
 #app {
   display: flex;
@@ -48,7 +54,7 @@ body {
 #shortlink-input {
   flex-grow: 1;
   border-radius: var(--default-border-radius);
-  border: var(--default-border-width);
+  border: var(--default-border-style);
   margin: var(--default-margin);
   padding: var(--default-padding);
   background: #1c2c44;
@@ -64,13 +70,13 @@ body {
 #links {
   flex-grow: 1;
   border-radius: var(--default-border-radius);
-  border: var(--default-border-width);
+  border: var(--default-border-style);
   margin: var(--default-margin);
   padding: var(--default-padding);
 }
 
 h1 {
   border-radius: var(--default-border-radius);
-  border: var(--default-border-width);
+  border: var(--default-border-style);
   padding: var(--default-padding);
 }

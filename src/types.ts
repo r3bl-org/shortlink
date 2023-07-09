@@ -21,41 +21,15 @@
  *   SOFTWARE.
  */
 
-import { Delays, Messages, showToast, triggerAutoCloseWindowWithDelay } from "./toast"
-import { Shortlink, Url } from "./types"
+export type Url = (string | undefined)[]
 
-export async function getAllShortlinks(): Promise<Shortlink[]> {
-  const result: any = await chrome.storage.sync.get(null)
-
-  const allShortlinks: Shortlink[] = []
-  for (const key in result) {
-    const value: Url[] = result[key]
-    console.log(`${key}: ${value}`)
-    allShortlinks.push({
-      name: key,
-      urls: value,
-    })
-  }
-
-  return allShortlinks
-}
-
-export function saveShortlink(shortlinkName: string, urls: Url) {
-  let newShortlinkObject = {
-    [shortlinkName]: urls,
-  }
-  chrome.storage.sync.set(newShortlinkObject).then(() => {
-    showToast(Messages.savingShortlink, Delays.done, "success")
-    triggerAutoCloseWindowWithDelay()
-  })
-}
-
-// Tabs API: https://developer.chrome.com/docs/extensions/reference/tabs/
-export function runWithSelectedTabs(fun: (urls: Url) => void) {
-  chrome.tabs.query({ currentWindow: true }, (tabs) => {
-    // Only get the selected (highlighted) tabs.
-    const highlightedTabs = tabs.filter((tab) => tab.highlighted)
-    const urls = highlightedTabs.map((tab) => tab.url)
-    fun(urls)
-  })
+// Alternative way to define Shortlink type:
+// More info on index signatures:
+// https://www.typescriptlang.org/docs/handbook/2/objects.html#index-signatures
+// type Shortlink = {
+//   [name: string]: Url[]
+// }
+export interface Shortlink {
+  name: string
+  urls: Url[]
 }

@@ -24,12 +24,13 @@
 import React, { useEffect, useState } from "react"
 import { createRoot } from "react-dom/client"
 import { openUrlsInTabs } from "./omnibox"
-import { Urls, getAllShortlinks, runWithSelectedTabs, saveShortlink } from "./storage"
+import { getAllShortlinks, runWithSelectedTabs, saveShortlink } from "./storage"
 import "./style.css"
 import { Delays, Messages, showToast, triggerAutoCloseWindowWithDelay } from "./toast"
+import { Shortlink, Url } from "./types"
 
 function Popup() {
-  const [allShortlinks, setAllShortlinks] = useState<string[]>([])
+  const [allShortlinks, setAllShortlinks] = useState<Shortlink[]>([])
   const [userInputText, setUserInputText] = useState<string>("")
 
   // List all shortlinks.
@@ -62,15 +63,22 @@ function Popup() {
       <input
         autoFocus={true}
         id="shortlink-input"
-        placeholder='Type your new shortlink or "open/o or delete/d <shortlink>" then Press Enter'
+        placeholder='Type your new shortlink or "go/g or delete/d <shortlink>" then Press Enter'
         onChange={(event) => handleOnChange(event, setUserInputText)}
         onKeyDown={(event) => handleEnterKey(event, userInputText)}
       />
 
       <div id="links">
-        {allShortlinks.length === 0
-          ? "You don't have any shortlinks yet 🤷"
-          : `Your shortlinks: ${allShortlinks}`}
+        {allShortlinks.length === 0 ? (
+          "You don't have any shortlinks yet 🤷"
+        ) : (
+          <>
+            <b>Your shortlinks: </b>
+            {allShortlinks.map((shortlink) => (
+              <code className="shortlink">{shortlink.name}</code>
+            ))}
+          </>
+        )}
         <br />
         Count: {allShortlinks.length}
       </div>
@@ -113,16 +121,16 @@ function handleEnterKey(event: React.KeyboardEvent<HTMLInputElement>, userInputT
     return
   }
 
-  // Open shortlink using `open`.
-  if (userInputText.startsWith("open ")) {
-    const shortlinkArg = userInputText.replace("open ", "").trim()
+  // Open shortlink using `go`.
+  if (userInputText.startsWith("go ")) {
+    const shortlinkArg = userInputText.replace("go ", "").trim()
     openShortlink(shortlinkArg)
     return
   }
 
-  // Open shortlink using `o`.
-  if (userInputText.startsWith("o ")) {
-    const shortlinkArg = userInputText.replace("o ", "").trim()
+  // Open shortlink using `g`.
+  if (userInputText.startsWith("g ")) {
+    const shortlinkArg = userInputText.replace("g ", "").trim()
     openShortlink(shortlinkArg)
     return
   }
@@ -146,7 +154,7 @@ function handleEnterKey(event: React.KeyboardEvent<HTMLInputElement>, userInputT
 
 function openShortlink(shortlinkArg: string) {
   chrome.storage.sync.get(shortlinkArg, (result) => {
-    const urls: Urls = result[shortlinkArg]
+    const urls: Url = result[shortlinkArg]
     openUrlsInTabs(urls)
   })
 }
