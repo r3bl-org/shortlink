@@ -23,6 +23,7 @@
 
 import React, { useEffect, useState } from "react"
 import { createRoot } from "react-dom/client"
+import { copyShortlinkUrlToClipboard } from "./clipboard"
 import { parseUserInputTextIntoCommand } from "./command"
 import {
   deleteShortlink,
@@ -71,7 +72,7 @@ function Popup() {
       <input
         autoFocus={true}
         id="shortlink-input"
-        placeholder='Type your new shortlink or "go/g or delete/d <shortlink>" then Press Enter'
+        placeholder='Type new shortlink or "copy/c or go/g or delete/d <shortlink>" then Enter'
         onChange={(event) => handleOnChange(event, setUserInputText)}
         onKeyDown={(event) => handleEnterKey(event, userInputText)}
       />
@@ -116,6 +117,10 @@ async function handleEnterKey(event: React.KeyboardEvent<HTMLInputElement>, user
   const command = parseUserInputTextIntoCommand(userInputText)
 
   switch (command.kind) {
+    case "nothing": {
+      tryToSaveShortlink(userInputText)
+      return
+    }
     case "save": {
       tryToSaveShortlink(userInputText)
       return
@@ -128,8 +133,8 @@ async function handleEnterKey(event: React.KeyboardEvent<HTMLInputElement>, user
       goToShortlink(command.shortlinkName)
       return
     }
-    case "nothing": {
-      tryToSaveShortlink(userInputText)
+    case "copytoclipboard": {
+      copyShortlinkUrlToClipboard(command.shortlinkName)
       return
     }
   }

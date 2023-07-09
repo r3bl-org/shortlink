@@ -21,7 +21,7 @@
  *   SOFTWARE.
  */
 
-export type Url = (string | undefined)[]
+export type Urls = (string | undefined)[]
 
 // Alternative way to define Shortlink type:
 // More info on index signatures:
@@ -31,5 +31,5 @@ export type Url = (string | undefined)[]
 // }
 export interface Shortlink {
   name: string
-  urls: Url[]
+  urls: Urls[]
 }

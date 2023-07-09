@@ -23,14 +23,14 @@
 
 import { openUrlsInTabs } from "./omnibox"
 import { Delays, Messages, showToast, triggerAutoCloseWindowWithDelay } from "./toast"
-import { Shortlink, Url } from "./types"
+import { Shortlink, Urls } from "./types"
 
 export async function getAllShortlinks(): Promise<Shortlink[]> {
   const result: any = await chrome.storage.sync.get(null)
 
   const allShortlinks: Shortlink[] = []
   for (const key in result) {
-    const value: Url[] = result[key]
+    const value: Urls[] = result[key]
     console.log(`${key}: ${value}`)
     allShortlinks.push({
       name: key,
@@ -41,7 +41,7 @@ export async function getAllShortlinks(): Promise<Shortlink[]> {
   return allShortlinks
 }
 
-export function actuallySaveShortlink(shortlinkName: string, urls: Url) {
+export function actuallySaveShortlink(shortlinkName: string, urls: Urls) {
   let newShortlinkObject = {
     [shortlinkName]: urls,
   }
@@ -73,7 +73,7 @@ export async function tryToSaveShortlink(userInputText: string) {
 
 export function openShortlink(shortlinkArg: string) {
   chrome.storage.sync.get(shortlinkArg, (result) => {
-    const urls: Url = result[shortlinkArg]
+    const urls: Urls = result[shortlinkArg]
     openUrlsInTabs(urls)
   })
 }

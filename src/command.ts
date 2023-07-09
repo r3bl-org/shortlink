@@ -40,13 +40,25 @@ export type CommandNothing = {
   kind: "nothing"
 }
 
-export type Command = CommandDelete | CommandGo | CommandSave | CommandNothing
+export type CommandCopyToClipboard = {
+  kind: "copytoclipboard"
+  shortlinkName: string
+}
+
+export type Command =
+  | CommandDelete
+  | CommandGo
+  | CommandSave
+  | CommandNothing
+  | CommandCopyToClipboard
 
 export const CommandName = {
   Go: "go ",
   GoShort: "g ",
   Delete: "delete ",
   DeleteShort: "d ",
+  CopyToClipboard: "copy ",
+  CopyToClipboardShort: "c ",
 }
 
 export function parseUserInputTextIntoCommand(userInputText: string): Command {
@@ -93,10 +105,27 @@ export function parseUserInputTextIntoCommand(userInputText: string): Command {
     }
   }
 
+  // Open shortlink using `copy`.
+  if (userInputText.startsWith(CommandName.CopyToClipboard)) {
+    const shortlinkArg = userInputText.replace(CommandName.CopyToClipboard, "").trim()
+    return {
+      kind: "copytoclipboard",
+      shortlinkName: shortlinkArg,
+    }
+  }
+
+  // Open shortlink using `c`.
+  if (userInputText.startsWith(CommandName.CopyToClipboardShort)) {
+    const shortlinkArg = userInputText.replace(CommandName.CopyToClipboardShort, "").trim()
+    return {
+      kind: "copytoclipboard",
+      shortlinkName: shortlinkArg,
+    }
+  }
+
   // Save shortlink using `save`.
   return {
     kind: "save",
     shortlinkName: userInputText,
   }
 }
-
