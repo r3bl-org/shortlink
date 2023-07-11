@@ -1,11 +1,24 @@
+# PROGRESS.md
+
 This document is meant to capture context after I've been away from this project for some time.
+
+Table of contents:
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+- [Context](#context)
+- [Why?](#why)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Context
 
 1. I first created a version of `R3BL Shortlink` that was in almost pure JS. This was more of a
-   proof of concept to get things working, understanding Chrome extension API, and
-   [Title](https://chrome.google.com/webstore/detail/shortlink/apgeooocopnncglmnlngfpgggkmlcldf)actually
-   seeing if the abandoned [Shortlink extension]() (Chrome manifest v2) could even be ported to v3.
+   proof of concept to get things working, understanding Chrome extension API, and actually seeing
+   if the abandoned
+   [Shortlink extension](https://chrome.google.com/webstore/detail/shortlink/apgeooocopnncglmnlngfpgggkmlcldf)
+   (Chrome manifest v2) could even be ported to v3.
 2. I published this to the
    [Chrome web store](https://chrome.google.com/webstore/detail/r3bl-shortlink/ffhfkgcfbjoadmhdmdcmigopbfkddial?hl=en-US&gl=US).
 3. I refined that prototype using Typescript, and React, into something that is called v2.0 of the

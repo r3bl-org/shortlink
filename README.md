@@ -1,42 +1,59 @@
-# Shortlink chrome extension
+# Shortcut Chrome extension written in Typescript and React.
 
-Chrome extension written in Typescript and React.
+Table of contents:
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+- [Prerequisites](#prerequisites)
+- [Option](#option)
+- [Includes the following](#includes-the-following)
+- [Project Structure](#project-structure)
+- [Setup](#setup)
+- [Open in Visual Studio Code](#open-in-visual-studio-code)
+- [Build](#build)
+- [Build in watch mode](#build-in-watch-mode)
+  - [terminal](#terminal)
+  - [Visual Studio Code](#visual-studio-code)
+- [Load extension to chrome](#load-extension-to-chrome)
+- [Test](#test)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Prerequisites
 
-* [node + npm](https://nodejs.org/) (Current Version)
+- [node + npm](https://nodejs.org/) (Current Version)
 
 ## Option
 
-* [Visual Studio Code](https://code.visualstudio.com/)
+- [Visual Studio Code](https://code.visualstudio.com/)
 
 ## Includes the following
 
-* TypeScript
-* Webpack
-* React
-* Jest
-* Code
-    * Chrome Storage
-    * Badge number
-    * Background script 
+- TypeScript
+- Webpack
+- React
+- Jest
+- Code
+  - Chrome Storage
+  - Badge number
+  - Background script
 
 ## Project Structure
 
-* src/typescript: TypeScript source files
-* src/assets: static files
-* dist: Chrome Extension directory
-* dist/js: Generated JavaScript files
+| Folder       | Description                |
+| ------------ | -------------------------- |
+| `src/`       | TypeScript source files    |
+| `public/`    | static files               |
+| `dist`       | Chrome Extension directory |
+| `dist/js`    | Generated JavaScript files |
+
 
 ## Setup
 
 ```
 npm install
 ```
-
-## Open in Visual Studio Code
-
-...
 
 ## Build
 
@@ -60,7 +77,8 @@ type `Ctrl + Shift + B`
 
 ## Load extension to chrome
 
-Load `dist` directory
+Load `dist` directory.
 
 ## Test
-`npx jest` or `npm run test`
+
+Run `npx jest` or `npm run test`.
