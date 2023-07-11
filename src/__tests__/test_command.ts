@@ -21,10 +21,12 @@
  *   SOFTWARE.
  */
 
-import { CommandSave, parseUserInputTextIntoCommand } from "../command"
+import { CommandSave, parseUserInputTextIntoCommand } from "../command";
 
-test("docs", () => {
-  const command = parseUserInputTextIntoCommand("docs") as CommandSave
-  expect(command.kind).toBe("save")
-  expect(command.shortlinkName).toBe("docs")
-})
+describe("parse command", () => {
+  it("can parse save <shortlink>", () => {
+    const command = parseUserInputTextIntoCommand("docs") as CommandSave
+    expect(command.kind).toBe("save")
+    expect(command.shortlinkName).toBe("docs")
+  })
+});
