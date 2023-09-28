@@ -86,3 +86,8 @@ h1 {
   border: var(--default-border-style);
   padding: var(--default-padding);
 }
+
+.shortlink-link{
+  all: unset;
+  cursor: pointer;
+}

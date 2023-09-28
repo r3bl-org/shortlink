@@ -87,7 +87,9 @@ function Popup() {
             <div className="shortlink-container">
               {allShortlinks.map((shortlink) => (
                 <code key={shortlink.name} className="shortlink">
-                  {shortlink.name}
+                  <a href={`https://www.${shortlink.name}`} target="_blank" className="shortlink-link">
+                    {shortlink.name}
+                    </a>
                 </code>
               ))}
             </div>
