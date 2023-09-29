@@ -51,18 +51,44 @@ const copyToClipboard = (text: string) => {
     )
 }
 
-export function copyShortlinkUrlToClipboard(shortlinkName: string) {
-  chrome.storage.sync.get(shortlinkName, (result) => {
-    const urls: Urls = result[shortlinkName]
-    if (urls === undefined || urls.length === 0) {
-      showToast("Please provide a saved shortlink to copy URL(s) from", Delays.done, "warning")
-      return
-    }
+export function copyShortlinkUrlToClipboard(shortlinkNames: string) {
+  const shortlinkNamesArray = shortlinkNames.split(",");
+  // Array to store the URLs for all shortlinks
+  const allUrls: string[] = [];
 
-    const text = urls.join("\n")
-    copyToClipboard(text)
-
-    showToast(Messages.copyToClipboard, Delays.done, "success")
-    triggerAutoCloseWindowWithDelay()
-  })
+  // Use Promise.all to handle asynchronous operations
+  Promise.all(
+    shortlinkNamesArray.map((shortlinkName) => {
+      return new Promise<void>((resolve, reject) => {
+        chrome.storage.sync.get(shortlinkName, (result) => {
+          const urls: Urls = result[shortlinkName];
+          if (urls === undefined) {
+            // Reject with an error message
+            reject(`No data found for shortlink: ${shortlinkName}`);
+          } else {
+            // Check if 'urls' is defined and not an empty array
+            if (Array.isArray(urls) && urls.length > 0) {
+              allUrls.push(...(urls as string[])); // Add the URLs to the array as a string
+            } else {
+              reject(`No URLs found for shortlink: ${shortlinkName}`);
+            }
+            resolve(); // Resolve the promise
+          }
+        });
+      });
+    })
+  )
+    .then(() => {
+      if (allUrls.length === 0) {
+        showToast("No URLs found for the provided shortlinks", Delays.done, "warning");
+      } else {
+        const text = allUrls.join("\n");
+        copyToClipboard(text);
+        showToast(Messages.copyToClipboard, Delays.done, "success");
+        //triggerAutoCloseWindowWithDelay();
+      }
+    })
+    .catch((error) => {
+      showToast(error, Delays.done, "error");
+    });
 }

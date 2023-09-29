@@ -24,7 +24,7 @@
 import React, { useEffect, useState } from "react"
 import { createRoot } from "react-dom/client"
 import { copyShortlinkUrlToClipboard } from "./clipboard"
-import { parseUserInputTextIntoCommand } from "./command"
+import {  CommandName,parseUserInputTextIntoCommand } from "./command"
 import {
   deleteShortlink,
   getAllShortlinks,
@@ -104,9 +104,16 @@ function handleOnChange(
   event: React.ChangeEvent<HTMLInputElement>,
   setUserInputText: React.Dispatch<React.SetStateAction<string>>
 ) {
-  const typedText = event.target.value
-  console.log("typedText:", typedText)
-  setUserInputText(typedText)
+  let typedText = event.target.value
+  if(typedText.includes(CommandName.CopyToClipboard)||typedText.includes(CommandName.CopyToClipboardShort)){
+    setUserInputText(typedText)
+  }
+  else{
+  typedText = typedText.replace(/[ ,]+$/, '');
+  let modifiedText = typedText.replace(/[ ,]+/g, "_");
+  console.log("typedText:", modifiedText)
+  setUserInputText(modifiedText)
+  }
 }
 
 async function handleEnterKey(event: React.KeyboardEvent<HTMLInputElement>, userInputText: string) {
@@ -114,7 +121,17 @@ async function handleEnterKey(event: React.KeyboardEvent<HTMLInputElement>, user
 
   console.log("typed: ", `'${userInputText}'`)
 
-  const command = parseUserInputTextIntoCommand(userInputText)
+function checkArg() {
+  if (/delete_/.test(userInputText)||/d_/.test(userInputText)) {
+    const modifieduserInputText = userInputText.replace("_"," ");
+    var result = parseUserInputTextIntoCommand(modifieduserInputText);
+    return result;
+  } else {
+      var result = parseUserInputTextIntoCommand(userInputText);
+      return result;
+    }
+  }
+var command = checkArg();
 
   switch (command.kind) {
     case "nothing": {
