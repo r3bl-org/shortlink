@@ -26,10 +26,10 @@ import { createRoot } from "react-dom/client"
 import { copyMultipleShortlinks } from "./clipboard"
 import { parseUserInputTextIntoCommand } from "./command"
 import {
-  deleteShortlink,
+  deleteMultipleShortlinks,
   getAllShortlinks,
-  openMultipleShortlinks as goToMultipleShortlinks,
-  tryToSaveShortlink,
+  openMultipleShortlinks,
+  tryToSaveShortlink
 } from "./storage"
 import "./style.css"
 import { Delays, Messages, showToast } from "./toast"
@@ -127,11 +127,11 @@ async function handleEnterKey(event: React.KeyboardEvent<HTMLInputElement>, rawU
       return
     }
     case "delete": {
-      deleteShortlink(command.shortlinkName)
+      await deleteMultipleShortlinks(command.shortlinkName)
       return
     }
     case "go": {
-      await goToMultipleShortlinks(command.shortlinkName)
+      await openMultipleShortlinks(command.shortlinkName)
       return
     }
     case "copytoclipboard": {

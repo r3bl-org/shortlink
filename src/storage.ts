@@ -72,13 +72,13 @@ export async function tryToSaveShortlink(newShortlinkName: string) {
 }
 
 export async function openMultipleShortlinks(shortlinkArg: string) {
-  const splitted_trimmed = extractMultipleShortlinkNames(shortlinkArg)
+  const names = extractMultipleShortlinkNames(shortlinkArg)
 
-  console.log("shortlink names to copy: ", splitted_trimmed)
+  console.log("shortlink names to copy: ", names)
 
   let urls: Urls = []
 
-  for (const name of splitted_trimmed) {
+  for (const name of names) {
     let urlsForName: Urls = await getUrlsForShortlinkName(name)
     urls = urls.concat(urlsForName)
   }
@@ -86,17 +86,22 @@ export async function openMultipleShortlinks(shortlinkArg: string) {
   openUrlsInTabs(urls)
 }
 
-export function deleteShortlink(shortlinkArg: string) {
-  console.log("shortlinkArg", shortlinkArg)
+export async function deleteMultipleShortlinks(shortlinkArg: string) {
+  const names = extractMultipleShortlinkNames(shortlinkArg)
+
+  console.log("shortlink names to delete: ", names)
+
   // No arg provided.
-  if (shortlinkArg === undefined || shortlinkArg.length === 0) {
+  if (names === undefined || names.length === 0) {
     showToast(`Please provide a shortlink name to delete`, Delays.done, "warning")
     return
   }
   // Arg provided.
   else {
-    chrome.storage.sync.remove(shortlinkArg)
-    showToast(`Deleting shortlink ${shortlinkArg}`, Delays.done, "info")
+    for (const name of names) {
+      await removeFromSyncStorage(name)
+    }
+    showToast(`Deleting shortlink(s) ${names.join(", ")}`, Delays.done, "info")
     triggerAutoCloseWindowWithDelay()
     return
   }
@@ -112,6 +117,14 @@ export async function getUrlsForShortlinkName(shortlinkName: string): Promise<Ur
     console.error(error)
     return []
   }
+}
+
+export function removeFromSyncStorage(key: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    chrome.storage.sync.remove(key, () => {
+      resolve()
+    })
+  })
 }
 
 export function getFromSyncStorage(key: string): Promise<Urls> {
