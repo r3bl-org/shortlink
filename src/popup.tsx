@@ -28,7 +28,7 @@ import { parseUserInputTextIntoCommand } from "./command"
 import {
   deleteShortlink,
   getAllShortlinks,
-  openShortlink as goToShortlink,
+  openMultipleShortlinks as goToMultipleShortlinks,
   tryToSaveShortlink,
 } from "./storage"
 import "./style.css"
@@ -131,7 +131,7 @@ async function handleEnterKey(event: React.KeyboardEvent<HTMLInputElement>, rawU
       return
     }
     case "go": {
-      goToShortlink(command.shortlinkName)
+      await goToMultipleShortlinks(command.shortlinkName)
       return
     }
     case "copytoclipboard": {
