@@ -42,7 +42,7 @@ export type CommandNothing = {
 
 export type CommandCopyToClipboard = {
   kind: "copytoclipboard"
-  shortlinkName: string
+  shortlinkNames: string
 }
 
 export type Command =
@@ -110,7 +110,7 @@ export function parseUserInputTextIntoCommand(userInputText: string): Command {
     const shortlinkArg = userInputText.replace(CommandName.CopyToClipboard, "").trim()
     return {
       kind: "copytoclipboard",
-      shortlinkName: shortlinkArg,
+      shortlinkNames: shortlinkArg,
     }
   }
 
@@ -119,7 +119,7 @@ export function parseUserInputTextIntoCommand(userInputText: string): Command {
     const shortlinkArg = userInputText.replace(CommandName.CopyToClipboardShort, "").trim()
     return {
       kind: "copytoclipboard",
-      shortlinkName: shortlinkArg,
+      shortlinkNames: shortlinkArg,
     }
   }
 
