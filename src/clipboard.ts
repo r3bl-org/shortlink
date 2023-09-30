@@ -85,7 +85,7 @@ export function copyShortlinkUrlToClipboard(shortlinkNames: string) {
         const text = allUrls.join("\n");
         copyToClipboard(text);
         showToast(Messages.copyToClipboard, Delays.done, "success");
-        //triggerAutoCloseWindowWithDelay();
+        triggerAutoCloseWindowWithDelay();
       }
     })
     .catch((error) => {
