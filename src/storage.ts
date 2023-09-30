@@ -51,7 +51,7 @@ export function actuallySaveShortlink(shortlinkName: string, urls: Urls) {
   })
 }
 
-export async function tryToSaveShortlink(userInputText: string) {
+export async function tryToSaveShortlink(newShortlinkName: string) {
   // Only get the selected (highlighted) tabs.
   // Tabs API: https://developer.chrome.com/docs/extensions/reference/tabs/
   const tabs = await chrome.tabs.query({ currentWindow: true })
@@ -59,15 +59,15 @@ export async function tryToSaveShortlink(userInputText: string) {
   const urls = highlightedTabs.map((tab) => tab.url)
 
   // Save the urls using the shortlink name: userInputText.
-  const result = await chrome.storage.sync.get(userInputText)
-  const value = result[userInputText]
+  const result = await chrome.storage.sync.get(newShortlinkName)
+  const value = result[newShortlinkName]
   if (value !== undefined && value.length > 0) {
     showToast(Messages.duplicateExists, Delays.preparing, "info")
     setTimeout(() => {
-      actuallySaveShortlink(userInputText, urls)
+      actuallySaveShortlink(newShortlinkName, urls)
     }, Delays.preparing)
   } else {
-    actuallySaveShortlink(userInputText, urls)
+    actuallySaveShortlink(newShortlinkName, urls)
   }
 }
 
