@@ -21,16 +21,18 @@
  *   SOFTWARE.
  */
 
-export type Urls = (string | undefined)[]
+import { validateShortlinkName } from "../command"
 
-// Alternative way to define Shortlink type:
-// More info on index signatures:
-// https://www.typescriptlang.org/docs/handbook/2/objects.html#index-signatures
-// type Shortlink = {
-//   [name: string]: Url[]
-// }
-export interface Shortlink {
-  name: string
-  urls: Urls[]
-}
+test('validateShortlinkName replaces spaces and commas with underscores', () => {
+  const input = 'hello, wor-ld  , '
+  const expectedOutput = 'hello_wor-ld'
+  const actualOutput = validateShortlinkName(input)
+  expect(actualOutput).toBe(expectedOutput)
+})
 
+test('validateShortlinkName replaces too many underscores with a single underscore', () => {
+  const input = 'hello   world'
+  const expectedOutput = 'hello_world'
+  const actualOutput = validateShortlinkName(input)
+  expect(actualOutput).toBe(expectedOutput)
+})

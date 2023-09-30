@@ -23,7 +23,8 @@
 
 export const Messages = {
   // Emoji: https://www.w3schools.com/charsets/ref_emoji.asp
-  savingShortlink: "<span>&#9989;</span> Saving your short link ...",
+  nothingTyped: "<span>&#9889;</span> Please type a command or shortlink name ...",
+  savingShortlink: "<span>&#9989;</span> Saving your shortlink ...",
   duplicateExists: "<span>&#9997;</span> Replacing existing shortlink ...",
   copyToClipboard: "<span>&#128077;</span> Copying shortlink URL(s) to clipboard ...",
 }

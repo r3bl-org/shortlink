@@ -32,6 +32,7 @@ import {
   tryToSaveShortlink,
 } from "./storage"
 import "./style.css"
+import { Delays, Messages, showToast } from "./toast"
 import { Shortlink } from "./types"
 
 function Popup() {
@@ -109,20 +110,20 @@ function handleOnChange(
   setUserInputText(typedText)
 }
 
-async function handleEnterKey(event: React.KeyboardEvent<HTMLInputElement>, userInputText: string) {
+async function handleEnterKey(event: React.KeyboardEvent<HTMLInputElement>, rawUserInputText: string) {
   if (event.key !== "Enter") return
 
-  console.log("typed: ", `'${userInputText}'`)
+  console.log("typed: ", `'${rawUserInputText}'`)
 
-  const command = parseUserInputTextIntoCommand(userInputText)
+  const command = parseUserInputTextIntoCommand(rawUserInputText)
 
   switch (command.kind) {
     case "nothing": {
-      tryToSaveShortlink(userInputText)
+      showToast(Messages.duplicateExists, Delays.preparing, "warning")
       return
     }
     case "save": {
-      tryToSaveShortlink(userInputText)
+      tryToSaveShortlink(command.shortlinkName)
       return
     }
     case "delete": {

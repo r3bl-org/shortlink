@@ -62,7 +62,7 @@ export const CommandName = {
 }
 
 export function parseUserInputTextIntoCommand(userInputText: string): Command {
-  // Nothing typed.
+  // User typed nothing & just pressed enter.
   if (userInputText !== undefined && userInputText.length === 0) {
     return {
       kind: "nothing",
@@ -123,9 +123,22 @@ export function parseUserInputTextIntoCommand(userInputText: string): Command {
     }
   }
 
-  // Save shortlink using `save`.
+  // Default command: Save shortlink using `save`, validate the shortlink name.
+  const shortlinkArg = validateShortlinkName(userInputText)
   return {
     kind: "save",
-    shortlinkName: userInputText,
+    shortlinkName: shortlinkArg,
   }
+}
+
+// 1. Validate input string by replacing spaces and/or commas with `_`.
+// 2. Also replace multiple underscores with a single underscore.
+// 3. Remove trailing underscore.
+export function validateShortlinkName(input: string): string {
+  let replaceSpacesCommas = input.replace(/[\s,]+/g, "_")
+  let replacesTooManyUnderscores = replaceSpacesCommas.replace(/_+/g, "_")
+  if (replacesTooManyUnderscores.endsWith("_")) {
+    replacesTooManyUnderscores = replacesTooManyUnderscores.slice(0, -1)
+  }
+  return replacesTooManyUnderscores
 }
