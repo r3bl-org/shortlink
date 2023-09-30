@@ -71,11 +71,19 @@ export async function tryToSaveShortlink(newShortlinkName: string) {
   }
 }
 
-export function openShortlink(shortlinkArg: string) {
-  chrome.storage.sync.get(shortlinkArg, (result) => {
-    const urls: Urls = result[shortlinkArg]
-    openUrlsInTabs(urls)
-  })
+export async function openMultipleShortlinks(shortlinkArg: string) {
+  const splitted_trimmed = extractMultipleShortlinkNames(shortlinkArg)
+
+  console.log("shortlink names to copy: ", splitted_trimmed)
+
+  let urls: Urls = []
+
+  for (const name of splitted_trimmed) {
+    let urlsForName: Urls = await getUrlsForShortlinkName(name)
+    urls = urls.concat(urlsForName)
+  }
+
+  openUrlsInTabs(urls)
 }
 
 export function deleteShortlink(shortlinkArg: string) {
@@ -92,4 +100,39 @@ export function deleteShortlink(shortlinkArg: string) {
     triggerAutoCloseWindowWithDelay()
     return
   }
+}
+
+export async function getUrlsForShortlinkName(shortlinkName: string): Promise<Urls> {
+  try {
+    const result: Urls = await getFromSyncStorage(shortlinkName)
+    console.log("getUrlsForShortlinkName: ", shortlinkName)
+    console.log("result: ", result)
+    return result
+  } catch (error) {
+    console.error(error)
+    return []
+  }
+}
+
+export function getFromSyncStorage(key: string): Promise<Urls> {
+  return new Promise((resolve, reject) => {
+    chrome.storage.sync.get(key, (result) => {
+      if (result === undefined || result.length === 0) {
+        reject()
+      } else {
+        const urls: Urls = result[key]
+        resolve(urls)
+      }
+    })
+  })
+}
+
+// Given a string of shortlink names, extract them into an array. The names can be
+// separated by `;`, `,` or space.
+// More info: https://sl.bing.net/giOzxFaWCWq
+export function extractMultipleShortlinkNames(shortlinkNames: string): string[] {
+  const splitted = shortlinkNames.split(/;|,| /)
+  const splitted_no_empty = splitted.filter((it) => it.trim() !== "")
+  const splitted_trimmed = splitted_no_empty.map(it => it.trim())
+  return splitted_trimmed
 }

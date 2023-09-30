@@ -21,15 +21,13 @@
  *   SOFTWARE.
  */
 
+import { extractMultipleShortlinkNames, getUrlsForShortlinkName } from "./storage"
 import { Delays, Messages, showToast, triggerAutoCloseWindowWithDelay } from "./toast"
 import { Urls } from "./types"
 
 // Multiple shortlink names can be passed in using delimiter: `;`, `,` or space.
-export async function copyMultipleShortlinks(shortlinkNames: string) {
-  // More info: https://sl.bing.net/giOzxFaWCWq
-  const splitted = shortlinkNames.split(/;|,| /)
-  const splitted_no_empty = splitted.filter((it) => it.trim() !== "")
-  const splitted_trimmed = splitted_no_empty.map(it => it.trim())
+export async function copyMultipleShortlinks(shortlinkArg: string) {
+  const splitted_trimmed = extractMultipleShortlinkNames(shortlinkArg)
 
   console.log("shortlink names to copy: ", splitted_trimmed)
 
@@ -47,31 +45,6 @@ export async function copyMultipleShortlinks(shortlinkNames: string) {
   showToast(Messages.copyToClipboard, Delays.done, "success")
 
   triggerAutoCloseWindowWithDelay()
-}
-
-export async function getUrlsForShortlinkName(shortlinkName: string): Promise<Urls> {
-  try {
-    const result: Urls = await getFromSyncStorage(shortlinkName);
-    console.log("getUrlsForShortlinkName: ", shortlinkName)
-    console.log("result: ", result)
-    return result
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
-}
-
-function getFromSyncStorage(key: string): Promise<Urls> {
-  return new Promise((resolve, reject) => {
-    chrome.storage.sync.get(key, (result) => {
-      if (result === undefined || result.length === 0) {
-        reject();
-      } else {
-        const urls: Urls = result[key]
-        resolve(urls);
-      }
-    });
-  });
 }
 
 /**
