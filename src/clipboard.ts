@@ -24,6 +24,81 @@
 import { Delays, Messages, showToast, triggerAutoCloseWindowWithDelay } from "./toast"
 import { Urls } from "./types"
 
+// Multiple shortlink names can be passed in using delimiter: `;`, `,` or space.
+export async function copyMultipleShortlinks(shortlinkNames: string) {
+  // More info: https://sl.bing.net/giOzxFaWCWq
+  const splitted = shortlinkNames.split(/;|,| /)
+  const splitted_no_empty = splitted.filter((it) => it.trim() !== "")
+  const splitted_trimmed = splitted_no_empty.map(it => it.trim())
+
+  console.log("shortlink names to copy: ", splitted_trimmed)
+
+  let urls: Urls = []
+
+  for (const name of splitted_trimmed) {
+    let urlsForName: Urls = await getUrlsForShortlinkName(name)
+    urls = urls.concat(urlsForName)
+  }
+
+  const text = urls.join("\n")
+
+  await copyToClipboard(text)
+
+  showToast(Messages.copyToClipboard, Delays.done, "success")
+
+  triggerAutoCloseWindowWithDelay()
+}
+
+export async function getUrlsForShortlinkName(shortlinkName: string): Promise<Urls> {
+  try {
+    const result: Urls = await getFromSyncStorage(shortlinkName);
+    console.log("getUrlsForShortlinkName: ", shortlinkName)
+    console.log("result: ", result)
+    return result
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+}
+
+function getFromSyncStorage(key: string): Promise<Urls> {
+  return new Promise((resolve, reject) => {
+    chrome.storage.sync.get(key, (result) => {
+      if (result === undefined || result.length === 0) {
+        reject();
+      } else {
+        const urls: Urls = result[key]
+        resolve(urls);
+      }
+    });
+  });
+}
+
+/**
+ * https://stackoverflow.com/a/59695008/2085356
+ * https://developer.chrome.com/docs/extensions/mv3/declare_permissions/
+ * https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Interact_with_the_clipboard#writing_to_the_clipboard
+ */
+function copyToClipboard(text: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    navigator.clipboard
+      .writeText(text)
+      .then(
+        () => {
+          /* Clipboard successfully set. */
+          console.log("Copied to clipboard: " + text)
+          resolve()
+        },
+        () => {
+          /* Clipboard write failed, use fallback. */
+          copyToClipboardFallback(text)
+          console.log("Copied to clipboard using fallback: " + text)
+          resolve()
+        }
+      )
+  })
+}
+
 /**
  * Copy the short URL to the clipboard.
  * More info: https://stackoverflow.com/questions/49618618/copy-current-url-to-clipboard
@@ -35,34 +110,4 @@ const copyToClipboardFallback = (text: string) => {
   dummy.select()
   document.execCommand("copy")
   document.body.removeChild(dummy)
-}
-
-/**
- * https://stackoverflow.com/a/59695008/2085356
- * https://developer.chrome.com/docs/extensions/mv3/declare_permissions/
- * https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Interact_with_the_clipboard#writing_to_the_clipboard
- */
-const copyToClipboard = (text: string) => {
-  navigator.clipboard
-    .writeText(text)
-    .then(
-      undefined /* Clipboard successfully set. */,
-      () => copyToClipboardFallback(text) /* Clipboard write failed, use fallback. */
-    )
-}
-
-export function copyShortlinkUrlToClipboard(shortlinkName: string) {
-  chrome.storage.sync.get(shortlinkName, (result) => {
-    const urls: Urls = result[shortlinkName]
-    if (urls === undefined || urls.length === 0) {
-      showToast("Please provide a saved shortlink to copy URL(s) from", Delays.done, "warning")
-      return
-    }
-
-    const text = urls.join("\n")
-    copyToClipboard(text)
-
-    showToast(Messages.copyToClipboard, Delays.done, "success")
-    triggerAutoCloseWindowWithDelay()
-  })
 }

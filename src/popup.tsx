@@ -23,7 +23,7 @@
 
 import React, { useEffect, useState } from "react"
 import { createRoot } from "react-dom/client"
-import { copyShortlinkUrlToClipboard } from "./clipboard"
+import { copyMultipleShortlinks } from "./clipboard"
 import { parseUserInputTextIntoCommand } from "./command"
 import {
   deleteShortlink,
@@ -73,7 +73,7 @@ function Popup() {
       <input
         autoFocus={true}
         id="shortlink-input"
-        placeholder='Type new shortlink or "copy/c or go/g or delete/d <shortlink>" then Enter'
+        placeholder='Type new shortlink or "copy/c or go/g or delete/d <shortlinks>" then Enter'
         onChange={(event) => handleOnChange(event, setUserInputText)}
         onKeyDown={(event) => handleEnterKey(event, userInputText)}
       />
@@ -135,7 +135,7 @@ async function handleEnterKey(event: React.KeyboardEvent<HTMLInputElement>, rawU
       return
     }
     case "copytoclipboard": {
-      copyShortlinkUrlToClipboard(command.shortlinkName)
+      await copyMultipleShortlinks(command.shortlinkNames)
       return
     }
   }
