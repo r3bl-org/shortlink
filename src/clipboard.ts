@@ -27,13 +27,13 @@ import { Urls } from "./types"
 
 // Multiple shortlink names can be passed in using delimiter: `;`, `,` or space.
 export async function copyMultipleShortlinks(shortlinkArg: string) {
-  const splitted_trimmed = extractMultipleShortlinkNames(shortlinkArg)
+  const names = extractMultipleShortlinkNames(shortlinkArg)
 
-  console.log("shortlink names to copy: ", splitted_trimmed)
+  console.log("shortlink names to copy: ", names)
 
   let urls: Urls = []
 
-  for (const name of splitted_trimmed) {
+  for (const name of names) {
     let urlsForName: Urls = await getUrlsForShortlinkName(name)
     urls = urls.concat(urlsForName)
   }
