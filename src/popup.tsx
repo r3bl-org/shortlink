@@ -88,7 +88,11 @@ function Popup() {
             <div className="shortlink-container">
               {allShortlinks.map((shortlink) => (
                 <code key={shortlink.name} className="shortlink">
-                  {shortlink.name}
+                  <div
+                    className="shortlink-link"
+                    onClick={() => openTabs(shortlink.name)}>
+                    {shortlink.name}
+                  </div>
                 </code>
               ))}
             </div>
@@ -97,8 +101,12 @@ function Popup() {
         <br />
         <b>Count: {allShortlinks.length}</b>
       </div>
-    </div>
+    </div >
   )
+}
+
+function openTabs(shortlinkName: string) {
+  openMultipleShortlinks(shortlinkName)
 }
 
 function handleOnChange(
