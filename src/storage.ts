@@ -66,16 +66,51 @@ export async function saveToSyncStorage(key: string, value: Urls): Promise<void>
 
 export async function tryToSaveShortlink(newShortlinkName: string) {
   // Only get the selected (highlighted) tabs.
-  // Tabs API: https://developer.chrome.com/docs/extensions/reference/tabs/
-  const tabs = await chrome.tabs.query({ currentWindow: true })
-  const highlightedTabs = tabs.filter((tab) => tab.highlighted)
-  const urls = highlightedTabs.map((tab) => tab.url)
+  const tabs = await chrome.tabs.query({ currentWindow: true });
+  const highlightedTabs = tabs.filter((tab) => tab.highlighted);
+  const urls = highlightedTabs.map((tab) => tab.url);
 
-  // Save the urls using the shortlink name: userInputText.
-  const value: Urls = await getFromSyncStorage(newShortlinkName)
-  let overwrite = value !== undefined && value.length > 0
-  actuallySaveShortlink(newShortlinkName, urls, overwrite)
+   // Check if the shortlink already exists in sync storage
+   const existingValue = await getFromSyncStorage(newShortlinkName);
+
+   if (existingValue !== undefined && existingValue.length > 0) {
+     // Shortlink already exists, ask the user if they want to overwrite it
+     const confirmOverwrite = confirm(
+       `The shortlink '${newShortlinkName}' already exists. Do you want to overwrite it?`
+     );
+ 
+     if (confirmOverwrite) {
+       // User wants to overwrite, proceed with overwriting
+       await actuallySaveShortlink(newShortlinkName, urls, true);
+     } else {
+       // User does not want to overwrite, ask if they want to provide a new name
+       const renameShortlink = confirm(
+         `Do you want to provide a new name for the shortlink?`
+       );
+ 
+       if (renameShortlink) {
+         const newName = prompt("Enter a new name for the shortlink (or leave empty to keep the same name):");
+         if (newName !== null) {
+           if (newName.trim() !== "") {
+             // User entered a new name, save the shortlink with the new name
+             await actuallySaveShortlink(newName, urls, false);
+           } else {
+             // User kept the same name, close the popup
+             window.close();
+           }
+         }
+       } else {
+         // User does not want to provide a new name, close the popup
+         window.close();
+       }
+     }
+   } else {
+     // Shortlink doesn't exist, proceed with saving
+     await actuallySaveShortlink(newShortlinkName, urls, false);
+   }
+  
 }
+
 
 export async function openMultipleShortlinks(shortlinkArg: string) {
   const names = extractMultipleShortlinkNames(shortlinkArg)
