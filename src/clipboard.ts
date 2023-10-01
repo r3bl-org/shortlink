@@ -28,22 +28,15 @@ import { Urls } from "./types"
 // Multiple shortlink names can be passed in using delimiter: `;`, `,` or space.
 export async function copyMultipleShortlinks(shortlinkArg: string) {
   const names = extractMultipleShortlinkNames(shortlinkArg)
-
   console.log("shortlink names to copy: ", names)
-
   let urls: Urls = []
-
   for (const name of names) {
     let urlsForName: Urls = await getUrlsForShortlinkName(name)
     urls = urls.concat(urlsForName)
   }
-
   const text = urls.join("\n")
-
   await copyToClipboard(text)
-
-  showToast(Messages.copyToClipboard, Delays.done, "success")
-
+  showToast(Messages.copyToClipboard, Delays.default, "success")
   triggerAutoCloseWindowWithDelay()
 }
 

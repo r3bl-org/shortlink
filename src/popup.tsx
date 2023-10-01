@@ -119,7 +119,7 @@ async function handleEnterKey(event: React.KeyboardEvent<HTMLInputElement>, rawU
 
   switch (command.kind) {
     case "nothing": {
-      showToast(Messages.duplicateExists, Delays.preparing, "warning")
+      showToast(Messages.duplicateExists, Delays.default, "warning")
       return
     }
     case "save": {

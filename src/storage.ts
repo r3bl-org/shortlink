@@ -41,13 +41,26 @@ export async function getAllShortlinks(): Promise<Shortlink[]> {
   return allShortlinks
 }
 
-export function actuallySaveShortlink(shortlinkName: string, urls: Urls) {
-  let newShortlinkObject = {
-    [shortlinkName]: urls,
+export async function actuallySaveShortlink(shortlinkName: string, urls: Urls, overwrite: boolean) {
+  await saveToSyncStorage(shortlinkName, urls)
+  if (overwrite) {
+    showToast(Messages.duplicateExists, Delays.default, "info")
   }
-  chrome.storage.sync.set(newShortlinkObject).then(() => {
-    showToast(Messages.savingShortlink, Delays.done, "success")
-    triggerAutoCloseWindowWithDelay()
+  else {
+    showToast(Messages.savingShortlink, Delays.default, "success")
+  }
+  triggerAutoCloseWindowWithDelay()
+}
+
+export async function saveToSyncStorage(key: string, value: Urls): Promise<void> {
+  let newShortlinkObject = {
+    [key]: value,
+  }
+
+  return new Promise((resolve, reject) => {
+    chrome.storage.sync.set(newShortlinkObject, () => {
+      resolve()
+    })
   })
 }
 
@@ -59,16 +72,9 @@ export async function tryToSaveShortlink(newShortlinkName: string) {
   const urls = highlightedTabs.map((tab) => tab.url)
 
   // Save the urls using the shortlink name: userInputText.
-  const result = await chrome.storage.sync.get(newShortlinkName)
-  const value = result[newShortlinkName]
-  if (value !== undefined && value.length > 0) {
-    showToast(Messages.duplicateExists, Delays.preparing, "info")
-    setTimeout(() => {
-      actuallySaveShortlink(newShortlinkName, urls)
-    }, Delays.preparing)
-  } else {
-    actuallySaveShortlink(newShortlinkName, urls)
-  }
+  const value: Urls = await getFromSyncStorage(newShortlinkName)
+  let overwrite = value !== undefined && value.length > 0
+  actuallySaveShortlink(newShortlinkName, urls, overwrite)
 }
 
 export async function openMultipleShortlinks(shortlinkArg: string) {
@@ -93,7 +99,7 @@ export async function deleteMultipleShortlinks(shortlinkArg: string) {
 
   // No arg provided.
   if (names === undefined || names.length === 0) {
-    showToast(`Please provide a shortlink name to delete`, Delays.done, "warning")
+    showToast(`Please provide a shortlink name to delete`, Delays.default, "warning")
     return
   }
   // Arg provided.
@@ -101,7 +107,7 @@ export async function deleteMultipleShortlinks(shortlinkArg: string) {
     for (const name of names) {
       await removeFromSyncStorage(name)
     }
-    showToast(`Deleting shortlink(s) ${names.join(", ")}`, Delays.done, "info")
+    showToast(`Deleting shortlink(s) ${names.join(", ")}`, Delays.default, "info")
     triggerAutoCloseWindowWithDelay()
     return
   }

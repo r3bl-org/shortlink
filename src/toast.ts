@@ -30,9 +30,8 @@ export const Messages = {
 }
 
 export const Delays = {
-  preparing: 1500,
-  done: 2500,
-  autoClose: 2500,
+  default: 700,
+  autoClose: 1200,
 }
 
 // This is an external JS function, loaded in popup.html.
