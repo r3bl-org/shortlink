@@ -90,9 +90,94 @@ h1 {
 .shortlink-link{
   all: unset;
   cursor: pointer;
+  font-size: 15px;
 }
 
 .shortlink-link:hover {
   color: #aec7aa;
   text-decoration: underline;
+}
+
+.title {
+  margin-bottom: 15px;
+  text-align: center;
+  font-size: 18px;
+}
+
+.grid-wrapper {
+  display: grid;
+  border-collapse: collapse;
+  width: 100%;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+   
+}
+
+.grid-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr; 
+  border-bottom: 1px solid #f2f2f2;
+  align-items: center;
+}
+
+.grid-body > .grid-row:last-child{
+  border-bottom: none;
+}
+
+.grid-cell{
+  text-align: center;
+  border-right: 1px solid #f2f2f2;
+}
+
+.grid-body .grid-cell{
+  padding: 8px 0px;
+}
+
+.grid-cell:last-child{
+  border-right: none;
+}
+
+
+.actions {
+  display: flex;
+  justify-content: space-around;
+  align-items: center; 
+}
+button {
+  border: none;
+  border-radius: 5px; 
+  padding: 6px 18px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex; 
+  align-items: center;
+}
+
+button.edit-btn {
+  background-color: #007bff; 
+  color: white;
+}
+
+button.edit-btn:hover {
+  background-color: rgb(25, 109, 183); 
+}
+
+button.delete-btn {
+  background-color: #e94e77; 
+  color: white;
+}
+
+button.delete-btn:hover {
+  background-color: #d43f57;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+.app-footer{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
