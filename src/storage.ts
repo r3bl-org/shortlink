@@ -127,6 +127,7 @@ export async function openMultipleShortlinks(shortlinkArg: string) {
   openUrlsInTabs(urls)
 }
 
+
 export async function deleteMultipleShortlinks(shortlinkArg: string) {
   const names = extractMultipleShortlinkNames(shortlinkArg)
 
@@ -143,10 +144,38 @@ export async function deleteMultipleShortlinks(shortlinkArg: string) {
       await removeFromSyncStorage(name)
     }
     showToast(`Deleting shortlink(s) ${names.join(", ")}`, Delays.default, "info")
-    triggerAutoCloseWindowWithDelay()
+    //triggerAutoCloseWindowWithDelay()
     return
   }
 }
+
+export async function editShortlink(shortlinkName: string) {
+  // Retrieve the existing URLs for the specified shortlinkName
+  const existingUrls = await getUrlsForShortlinkName(shortlinkName);
+
+  if (existingUrls.length === 0) {
+    showToast(`Shortlink '${shortlinkName}' not found. Cannot edit.`, Delays.default, "warning");
+    return;
+  }
+
+  // Prompt the user to enter new URLs
+  const newUrlsInput = prompt(`Edit the URLs for shortlink '${shortlinkName}':`, existingUrls.join("\n"));
+
+  if (newUrlsInput === null) {
+    // User canceled the edit operation
+    return;
+  }
+
+  // Split the user's input into an array of new URLs
+  const newUrls = newUrlsInput.split("\n").map(url => url.trim());
+
+  // Update the shortlink with the new URLs
+  await saveToSyncStorage(shortlinkName, newUrls);
+
+  showToast(`Shortlink '${shortlinkName}' updated.`, Delays.default, "success");
+  triggerAutoCloseWindowWithDelay();
+}
+
 
 export async function getUrlsForShortlinkName(shortlinkName: string): Promise<Urls> {
   try {

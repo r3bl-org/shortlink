@@ -21,52 +21,61 @@
  *   SOFTWARE.
  */
 
-import React, { useEffect, useState } from "react"
-import { createRoot } from "react-dom/client"
-import { copyMultipleShortlinks } from "./clipboard"
-import { parseUserInputTextIntoCommand } from "./command"
+import React, { useEffect, useState } from "react";
+import { createRoot } from "react-dom/client";
+import { copyMultipleShortlinks } from "./clipboard";
+import { parseUserInputTextIntoCommand } from "./command";
 import {
   deleteMultipleShortlinks,
+  editShortlink,
   getAllShortlinks,
   openMultipleShortlinks,
-  tryToSaveShortlink
-} from "./storage"
-import "./style.css"
-import { Delays, Messages, showToast } from "./toast"
-import { Shortlink } from "./types"
+  tryToSaveShortlink,
+} from "./storage";
+import "./style.css";
+import { Delays, Messages, showToast } from "./toast";
+import { Shortlink } from "./types";
 
 function Popup() {
-  const [allShortlinks, setAllShortlinks] = useState<Shortlink[]>([])
-  const [userInputText, setUserInputText] = useState<string>("")
+  const [allShortlinks, setAllShortlinks] = useState<Shortlink[]>([]);
+  const [userInputText, setUserInputText] = useState<string>("");
+  const [isEditMode, setIsEditMode] = useState(false);
 
   // List all shortlinks.
-  // Note: To use async / await in useEffect, we need to create a function inside
-  // useEffect. So just using promises instead.
   useEffect(() => {
     getAllShortlinks().then((allShortlinks) => {
-      setAllShortlinks(allShortlinks)
-      console.log("atStart: setAllShortlinksString with:", `'${allShortlinks}'`)
-      console.log("atStart: setCount with:", `'${allShortlinks.length}'`)
-    })
-  }, [])
+      setAllShortlinks(allShortlinks);
+    });
+  }, []);
 
   // Listen to changes in storage.
-  // Note: To use async / await in useEffect, we need to create a function inside
-  // useEffect. So just using promises instead.
   useEffect(() => {
-    chrome.storage.onChanged.addListener((changes, namespace) => {
+    chrome.storage.onChanged.addListener(() => {
       getAllShortlinks().then((allShortlinks) => {
-        setAllShortlinks(allShortlinks)
-        console.log("onChange: setAllShortlinksString with:", `'${allShortlinks}'`)
-        console.log("onChange: setCount with:", `'${allShortlinks.length}'`)
-      })
-    })
-  }, [])
+        setAllShortlinks(allShortlinks);
+      });
+    });
+  }, []);
 
   // Update count badge when allShortlinks changes.
   useEffect(() => {
-    chrome.action.setBadgeText({ text: allShortlinks.length.toString() })
-  }, [allShortlinks])
+    chrome.action.setBadgeText({ text: allShortlinks.length.toString() });
+  }, [allShortlinks]);
+
+  // Function to delete a shortlink
+  const handleDeleteShortlink = async (shortlinkName: string) => {
+    const confirmDelete = confirm(
+      `Do you want to delete shortlinks ${shortlinkName}`
+    );
+    if (confirmDelete) {
+      await deleteMultipleShortlinks(shortlinkName);
+    }
+  };
+
+  // Function to edit a shortlink
+  const handleEditShortlink = async (shortlinkName: string) => {
+    await editShortlink(shortlinkName);
+  };
 
   return (
     <div id="app">
@@ -83,80 +92,137 @@ function Popup() {
           "You don't have any shortlinks yet 🤷"
         ) : (
           <>
-            <b>Your shortlinks: </b>
-            <br />
-            <div className="shortlink-container">
-              {allShortlinks.map((shortlink) => (
-                <code key={shortlink.name} className="shortlink">
-                  <div
-                    className="shortlink-link"
-                    onClick={() => openTabs(shortlink.name)}>
-                    {shortlink.name}
+            <h3 className="title">Your shortlinks: </h3>
+            {isEditMode ? (
+              <div className="grid-wrapper">
+                <div className="grid-header">
+                  <div className="grid-row">
+                    <div className="grid-cell">
+                      <h3>ShortLink</h3>
+                    </div>
+                    <div className="grid-cell">
+                      <h3>Action</h3>
+                    </div>
                   </div>
-                </code>
-              ))}
-            </div>
+                </div>
+                <div className="grid-body">
+                  {allShortlinks.map((shortlink) => (
+                    <div className="grid-row" key={shortlink.name}>
+                      <div
+                        className="shortlink-link grid-cell"
+                        onClick={() => openTabs(shortlink.name)}
+                      >
+                        {shortlink.name}
+                      </div>
+                      <div className="actions grid-cell">
+                        <button
+                          className="edit-btn"
+                          onClick={() => handleEditShortlink(shortlink.name)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="delete-btn"
+                          onClick={() => handleDeleteShortlink(shortlink.name)}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div>
+                <div className="shortlink-container">
+                  {allShortlinks.map((shortlink) => (
+                    <code key={shortlink.name} className="shortlink">
+                      <div
+                        className="shortlink-link"
+                        onClick={() => openTabs(shortlink.name)}
+                      >
+                        {shortlink.name}
+                      </div>
+                    </code>
+                  ))}
+                </div>
+              </div>
+            )}
           </>
         )}
         <br />
-        <b>Count: {allShortlinks.length}</b>
+        <div className="app-footer">
+          <b>Count: {allShortlinks.length}</b>
+          {!isEditMode ? (
+            <button className="edit-btn" onClick={(e) => setIsEditMode(true)}>
+              Edit Shorlinks
+            </button>
+          ) : (
+            <button className="edit-btn" onClick={(e) => setIsEditMode(false)}>
+              Finish Editing
+            </button>
+          )}
+        </div>
       </div>
-    </div >
-  )
+    </div>
+  );
 }
 
 function openTabs(shortlinkName: string) {
-  openMultipleShortlinks(shortlinkName)
+  openMultipleShortlinks(shortlinkName);
 }
 
 function handleOnChange(
   event: React.ChangeEvent<HTMLInputElement>,
   setUserInputText: React.Dispatch<React.SetStateAction<string>>
 ) {
-  const typedText = event.target.value
-  console.log("typedText:", typedText)
-  setUserInputText(typedText)
+  const typedText = event.target.value;
+  console.log("typedText:", typedText);
+  setUserInputText(typedText);
 }
 
-async function handleEnterKey(event: React.KeyboardEvent<HTMLInputElement>, rawUserInputText: string) {
-  if (event.key !== "Enter") return
+async function handleEnterKey(
+  event: React.KeyboardEvent<HTMLInputElement>,
+  rawUserInputText: string
+) {
+  if (event.key !== "Enter") return;
 
-  console.log("typed: ", `'${rawUserInputText}'`)
+  console.log("typed: ", `'${rawUserInputText}'`);
 
-  const command = parseUserInputTextIntoCommand(rawUserInputText)
+  const command = parseUserInputTextIntoCommand(rawUserInputText);
 
   switch (command.kind) {
     case "nothing": {
-      showToast(Messages.duplicateExists, Delays.default, "warning")
-      return
+      showToast(Messages.duplicateExists, Delays.default, "warning");
+      return;
     }
     case "save": {
-      tryToSaveShortlink(command.shortlinkName)
-      return
+      tryToSaveShortlink(command.shortlinkName);
+      return;
     }
     case "delete": {
-      await deleteMultipleShortlinks(command.shortlinkName)
-      return
+      await deleteMultipleShortlinks(command.shortlinkName);
+      return;
     }
     case "go": {
-      await openMultipleShortlinks(command.shortlinkName)
-      return
+      await openMultipleShortlinks(command.shortlinkName);
+      return;
     }
     case "copytoclipboard": {
-      await copyMultipleShortlinks(command.shortlinkNames)
-      return
+      await copyMultipleShortlinks(command.shortlinkNames);
+      return;
     }
   }
 }
 
 function main() {
-  const root = createRoot(document.getElementById("root")!)
+  const root = createRoot(document.getElementById("root")!);
 
   root.render(
     <React.StrictMode>
       <Popup />
     </React.StrictMode>
-  )
+  );
 }
 
-main()
+main();
