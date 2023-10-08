@@ -30,3 +30,53 @@ describe("parse command", () => {
     expect(command.shortlinkName).toBe("docs")
   })
 })
+
+describe("parse command", () => {
+  it("can parse save <shortlink>", () => {
+    const command = convertUserInputTextIntoCommand("docs") as Command.Save
+    expect(command.kind).toBe("save")
+    expect(command.shortlinkName).toBe("docs")
+  })
+
+  it("can parse delete <shortlink>", () => {
+    const command = convertUserInputTextIntoCommand("delete docs") as Command.Delete
+    expect(command.kind).toBe("delete")
+    expect(command.shortlinkName).toBe("docs")
+  })
+
+  it("can parse go <shortlink>", () => {
+    const command = convertUserInputTextIntoCommand("go docs") as Command.Go
+    expect(command.kind).toBe("go")
+    expect(command.shortlinkName).toBe("docs")
+  })
+
+  it("can parse copy <shortlink>", () => {
+    const command = convertUserInputTextIntoCommand("copy docs") as Command.CopyToClipboard
+    expect(command.kind).toBe("copytoclipboard")
+    expect(command.shortlinkNames).toBe("docs")
+  })
+
+  it("can parse copy <shortlink1> <shortlink2>", () => {
+    const command = convertUserInputTextIntoCommand("copy docs1 docs2") as Command.CopyToClipboard
+    expect(command.kind).toBe("copytoclipboard")
+    expect(command.shortlinkNames).toBe("docs1 docs2")
+  })
+
+  it("can parse ::debug:: <arg>", () => {
+    const command = convertUserInputTextIntoCommand("::debug:: arg") as Command.Debug
+    expect(command.kind).toBe("debug")
+    expect(command.arg).toBe("arg")
+  })
+
+  it("can parse ::debug:: <arg1> <arg2>", () => {
+    const command = convertUserInputTextIntoCommand("::debug:: arg1 arg2") as Command.Debug
+    expect(command.kind).toBe("debug")
+    expect(command.arg).toBe("arg1 arg2")
+  })
+
+  it("returns save for unknown or invalid command", () => {
+    const command = convertUserInputTextIntoCommand("invalid") as Command.Save
+    expect(command.kind).toBe("save")
+    expect(command.shortlinkName).toBe("invalid")
+  })
+})
