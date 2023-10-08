@@ -21,16 +21,20 @@
  *   SOFTWARE.
  */
 
+@import url("./reset.css");
+
 :root {
   --default-margin: 8px;
   --default-padding: 8px;
   --default-border-radius: 6px;
   --default-border-style: 2px solid rgb(119, 129, 147);
+  --max-height-of-popup: 300px;
+  --width-of-popup: 100ch;
 }
 
 body {
-  width: 90ch;
-  height: 100%;
+  width: var(--width-of-popup);
+  max-height: var(--max-height-of-popup);
   margin: var(--default-margin);
   padding: var(--default-padding);
   font-family: "Iosevka", monospace;
@@ -87,10 +91,9 @@ h1 {
   padding: var(--default-padding);
 }
 
-.shortlink-link{
+.shortlink-link {
   all: unset;
   cursor: pointer;
-  font-size: 15px;
 }
 
 .shortlink-link:hover {
@@ -99,85 +102,82 @@ h1 {
 }
 
 .title {
-  margin-bottom: 15px;
+  margin-bottom: 1ch;
   text-align: center;
-  font-size: 18px;
 }
 
 .grid-wrapper {
   display: grid;
   border-collapse: collapse;
   width: 100%;
-  border: 1px solid #e0e0e0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 4px;
   overflow: hidden;
-   
+}
+
+.grid-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.grid-body {
+  background-color: rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+  max-height: var(--max-height-of-popup);
 }
 
 .grid-row {
   display: grid;
-  grid-template-columns: 2fr 1fr; 
-  border-bottom: 1px solid #f2f2f2;
+  grid-template-columns: 2fr 1fr;
   align-items: center;
 }
 
-.grid-body > .grid-row:last-child{
+.grid-body > .grid-row:last-child {
   border-bottom: none;
 }
 
-.grid-cell{
+.grid-cell {
   text-align: center;
-  border-right: 1px solid #f2f2f2;
 }
 
-.grid-body .grid-cell{
-  padding: 8px 0px;
+.grid-body .grid-cell {
+  padding: 2px 0px;
 }
-
-.grid-cell:last-child{
-  border-right: none;
-}
-
 
 .actions {
   display: flex;
-  justify-content: space-around;
-  align-items: center; 
-}
-button {
-  border: none;
-  border-radius: 5px; 
-  padding: 6px 18px;
-  cursor: pointer;
-  transition: all 0.3s;
-  display: flex; 
+  justify-content: center;
   align-items: center;
 }
 
-button.edit-btn {
-  background-color: #007bff; 
-  color: white;
-}
-
-button.edit-btn:hover {
-  background-color: rgb(25, 109, 183); 
-}
-
-button.delete-btn {
-  background-color: #e94e77; 
-  color: white;
-}
-
-button.delete-btn:hover {
-  background-color: #d43f57;
-}
-
-button:hover {
-  opacity: 0.9;
-}
-
-.app-footer{
+.app-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+/* Buttons. */
+
+button {
+  border: none;
+  padding: 1px 8px;
+  margin-right: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  border-radius: 25px;
+  border: 2px solid rgba(255, 255, 255, 0);
+  color: white;
+}
+
+button:hover {
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+button.edit-btn {
+  background-color: #007bff;
+}
+
+button.delete-btn {
+  background-color: #e94e77;
 }

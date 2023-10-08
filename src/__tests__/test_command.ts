@@ -21,7 +21,7 @@
  *   SOFTWARE.
  */
 
-import { CommandSave, parseUserInputTextIntoCommand } from "../command";
+import { CommandSave, parseUserInputTextIntoCommand } from "../command"
 
 describe("parse command", () => {
   it("can parse save <shortlink>", () => {
@@ -29,4 +29,4 @@ describe("parse command", () => {
     expect(command.kind).toBe("save")
     expect(command.shortlinkName).toBe("docs")
   })
-});
+})

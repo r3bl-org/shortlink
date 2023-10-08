@@ -11,9 +11,22 @@
   padding: 10px 12px;
   opacity: 0;
   z-index: 99999;
-  transition: opacity 0.25s, top 0.25s, bottom 0.25s, -webkit-transform 0.25s;
-  transition: transform 0.25s, opacity 0.25s, top 0.25s, bottom 0.25s;
-  transition: transform 0.25s, opacity 0.25s, top 0.25s, bottom 0.25s, -webkit-transform 0.25s;
+  transition:
+    opacity 0.25s,
+    top 0.25s,
+    bottom 0.25s,
+    -webkit-transform 0.25s;
+  transition:
+    transform 0.25s,
+    opacity 0.25s,
+    top 0.25s,
+    bottom 0.25s;
+  transition:
+    transform 0.25s,
+    opacity 0.25s,
+    top 0.25s,
+    bottom 0.25s,
+    -webkit-transform 0.25s;
   box-sizing: border-box;
   max-width: 18rem;
 }
@@ -191,7 +204,7 @@
 }
 
 .native-toast-info {
-  background-color: #1B345B;
+  background-color: #1b345b;
   color: #fff;
 }
 

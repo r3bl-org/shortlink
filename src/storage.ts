@@ -45,8 +45,7 @@ export async function actuallySaveShortlink(shortlinkName: string, urls: Urls, o
   await saveToSyncStorage(shortlinkName, urls)
   if (overwrite) {
     showToast(Messages.duplicateExists, Delays.default, "info")
-  }
-  else {
+  } else {
     showToast(Messages.savingShortlink, Delays.default, "success")
   }
   triggerAutoCloseWindowWithDelay()
@@ -66,51 +65,49 @@ export async function saveToSyncStorage(key: string, value: Urls): Promise<void>
 
 export async function tryToSaveShortlink(newShortlinkName: string) {
   // Only get the selected (highlighted) tabs.
-  const tabs = await chrome.tabs.query({ currentWindow: true });
-  const highlightedTabs = tabs.filter((tab) => tab.highlighted);
-  const urls = highlightedTabs.map((tab) => tab.url);
+  const tabs = await chrome.tabs.query({ currentWindow: true })
+  const highlightedTabs = tabs.filter((tab) => tab.highlighted)
+  const urls = highlightedTabs.map((tab) => tab.url)
 
   // Check if the shortlink already exists in sync storage.
-  const existingValue = await getFromSyncStorage(newShortlinkName);
+  const existingValue: Urls = await getFromSyncStorage(newShortlinkName)
 
   if (existingValue !== undefined && existingValue.length > 0) {
     // Shortlink already exists, ask the user if they want to overwrite it.
     const confirmOverwrite = confirm(
-      `The shortlink '${newShortlinkName}' already exists. Do you want to overwrite it?`
-    );
+      `The shortlink '${newShortlinkName}' with value '${existingValue.join(", ")}' already exists. Do you want to overwrite it?`
+    )
 
     if (confirmOverwrite) {
       // User wants to overwrite, proceed with overwriting
-      await actuallySaveShortlink(newShortlinkName, urls, true);
+      await actuallySaveShortlink(newShortlinkName, urls, true)
     } else {
       // User does not want to overwrite, ask if they want to provide a new name
-      const renameShortlink = confirm(
-        `Do you want to provide a new name for the shortlink?`
-      );
+      const renameShortlink = confirm(`Do you want to provide a new name for the shortlink?`)
 
       if (renameShortlink) {
-        const newName = prompt("Enter a new name for the shortlink (or leave empty to keep the same name):");
+        const newName = prompt(
+          "Enter a new name for the shortlink (or leave empty to keep the same name):"
+        )
         if (newName !== null) {
           if (newName.trim() !== "") {
             // User entered a new name, save the shortlink with the new name
-            await actuallySaveShortlink(newName, urls, false);
+            await actuallySaveShortlink(newName, urls, false)
           } else {
             // User kept the same name, close the popup
-            window.close();
+            window.close()
           }
         }
       } else {
         // User does not want to provide a new name, close the popup
-        window.close();
+        window.close()
       }
     }
   } else {
     // Shortlink doesn't exist, proceed with saving
-    await actuallySaveShortlink(newShortlinkName, urls, false);
+    await actuallySaveShortlink(newShortlinkName, urls, false)
   }
-
 }
-
 
 export async function openMultipleShortlinks(shortlinkArg: string) {
   const names = extractMultipleShortlinkNames(shortlinkArg)
@@ -126,7 +123,6 @@ export async function openMultipleShortlinks(shortlinkArg: string) {
 
   openUrlsInTabs(urls)
 }
-
 
 export async function deleteMultipleShortlinks(shortlinkArg: string) {
   const names = extractMultipleShortlinkNames(shortlinkArg)
@@ -144,38 +140,45 @@ export async function deleteMultipleShortlinks(shortlinkArg: string) {
       await removeFromSyncStorage(name)
     }
     showToast(`Deleting shortlink(s) ${names.join(", ")}`, Delays.default, "info")
-    //triggerAutoCloseWindowWithDelay()
+    // Do not close this popup.
+    // triggerAutoCloseWindowWithDelay()
     return
   }
 }
 
 export async function editShortlink(shortlinkName: string) {
-  // Retrieve the existing URLs for the specified shortlinkName
-  const existingUrls = await getUrlsForShortlinkName(shortlinkName);
+  // Retrieve the existing URLs for the specified shortlinkName.
+  const existingUrls: Urls = await getUrlsForShortlinkName(shortlinkName)
+  console.log("existingUrls: ", existingUrls)
 
   if (existingUrls.length === 0) {
-    showToast(`Shortlink '${shortlinkName}' not found. Cannot edit.`, Delays.default, "warning");
-    return;
+    showToast(`Shortlink '${shortlinkName}' not found. Cannot edit.`, Delays.default, "warning")
+    return
   }
 
-  // Prompt the user to enter new URLs
-  const newUrlsInput = prompt(`Edit the URLs for shortlink '${shortlinkName}':`, existingUrls.join("\n"));
+  // Prompt the user to enter new URLs.
+  const newUrlsInput = prompt(
+    `Edit the URLs for shortlink '${shortlinkName}':`,
+    existingUrls.join("   ")
+  )
 
   if (newUrlsInput === null) {
-    // User canceled the edit operation
-    return;
+    // User canceled the edit operation.
+    return
   }
 
-  // Split the user's input into an array of new URLs
-  const newUrls = newUrlsInput.split("\n").map(url => url.trim());
+  // Split the user's input into an array of new URLs.
+  const newUrls = newUrlsInput
+    .split(" ")
+    .map((url) => url.trim())
+    .filter((url) => url !== "")
 
-  // Update the shortlink with the new URLs
-  await saveToSyncStorage(shortlinkName, newUrls);
+  // Update the shortlink with the new URLs.
+  await saveToSyncStorage(shortlinkName, newUrls)
 
-  showToast(`Shortlink '${shortlinkName}' updated.`, Delays.default, "success");
-  triggerAutoCloseWindowWithDelay();
+  showToast(`Shortlink '${shortlinkName}' updated.`, Delays.default, "success")
+  triggerAutoCloseWindowWithDelay()
 }
-
 
 export async function getUrlsForShortlinkName(shortlinkName: string): Promise<Urls> {
   try {
@@ -216,6 +219,6 @@ export function getFromSyncStorage(key: string): Promise<Urls> {
 export function extractMultipleShortlinkNames(shortlinkNames: string): string[] {
   const splitted = shortlinkNames.split(/;|,| /)
   const splitted_no_empty = splitted.filter((it) => it.trim() !== "")
-  const splitted_trimmed = splitted_no_empty.map(it => it.trim())
+  const splitted_trimmed = splitted_no_empty.map((it) => it.trim())
   return splitted_trimmed
 }

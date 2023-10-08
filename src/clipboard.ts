@@ -47,21 +47,19 @@ export async function copyMultipleShortlinks(shortlinkArg: string) {
  */
 function copyToClipboard(text: string): Promise<void> {
   return new Promise((resolve, reject) => {
-    navigator.clipboard
-      .writeText(text)
-      .then(
-        () => {
-          /* Clipboard successfully set. */
-          console.log("Copied to clipboard: " + text)
-          resolve()
-        },
-        () => {
-          /* Clipboard write failed, use fallback. */
-          copyToClipboardFallback(text)
-          console.log("Copied to clipboard using fallback: " + text)
-          resolve()
-        }
-      )
+    navigator.clipboard.writeText(text).then(
+      () => {
+        /* Clipboard successfully set. */
+        console.log("Copied to clipboard: " + text)
+        resolve()
+      },
+      () => {
+        /* Clipboard write failed, use fallback. */
+        copyToClipboardFallback(text)
+        console.log("Copied to clipboard using fallback: " + text)
+        resolve()
+      },
+    )
   })
 }
 

@@ -161,8 +161,8 @@
           {
             type: type,
           },
-          options
-        )
+          options,
+        ),
       )
     }
   }
