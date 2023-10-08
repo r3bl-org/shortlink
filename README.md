@@ -20,6 +20,14 @@ Table of contents:
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
+## Demo of it in action
+
+
+
+https://github.com/r3bl-org/shortlink/assets/2966499/fbe8df3f-2ad9-43b8-8a13-ad43e09a9bed
+
+
+
 ## What is it?
 
 Years ago when I used to work at Google, there was a way to create something called a "go link".
