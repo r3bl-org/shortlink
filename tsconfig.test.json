@@ -1,7 +1,7 @@
 {
-    "extends": "./tsconfig.json",
-    "compilerOptions": {
-        "moduleResolution": "node",
-        "sourceMap": true,
-    }
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "moduleResolution": "node",
+    "sourceMap": true
+  }
 }

@@ -23,16 +23,16 @@
 
 import { validateShortlinkName } from "../command"
 
-test('validateShortlinkName replaces spaces and commas with underscores', () => {
-  const input = 'hello, wor-ld  , '
-  const expectedOutput = 'hello_wor-ld'
+test("validateShortlinkName replaces spaces and commas with underscores", () => {
+  const input = "hello, wor-ld  , "
+  const expectedOutput = "hello_wor-ld"
   const actualOutput = validateShortlinkName(input)
   expect(actualOutput).toBe(expectedOutput)
 })
 
-test('validateShortlinkName replaces too many underscores with a single underscore', () => {
-  const input = 'hello   world'
-  const expectedOutput = 'hello_world'
+test("validateShortlinkName replaces too many underscores with a single underscore", () => {
+  const input = "hello   world"
+  const expectedOutput = "hello_world"
   const actualOutput = validateShortlinkName(input)
   expect(actualOutput).toBe(expectedOutput)
 })

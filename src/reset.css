@@ -21,15 +21,12 @@
  *   SOFTWARE.
  */
 
-export type Urls = (string | undefined)[]
-
-// Alternative way to define Shortlink type:
-// More info on index signatures:
-// https://www.typescriptlang.org/docs/handbook/2/objects.html#index-signatures
-// type Shortlink = {
-//   [name: string]: Url[]
-// }
-export interface Shortlink {
-  name: string
-  urls: Urls[]
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  text-decoration: none;
+  list-style: none;
 }
