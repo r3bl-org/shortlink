@@ -24,22 +24,39 @@
 import React, { useEffect, useState } from "react"
 import { createRoot } from "react-dom/client"
 import { copyMultipleShortlinks } from "./clipboard"
-import { parseUserInputTextIntoCommand } from "./command"
+import { Command, convertUserInputTextIntoCommand, tryToParse } from "./command"
+import { generateRandomName } from "./friendly-random-name-generator"
 import {
   deleteMultipleShortlinks,
   editShortlink,
   getAllShortlinks,
   openMultipleShortlinks,
+  saveToSyncStorage,
   tryToSaveShortlink,
 } from "./storage"
 import "./style.css"
 import { Delays, Messages, showToast } from "./toast"
 import { Shortlink } from "./types"
 
+// Workaround for an enum w/ a method.
+export namespace EditMode {
+  export type Type = typeof Enabled | typeof Disabled
+
+  export const Enabled = {
+    state: "enabled",
+    toBoolean: true,
+  }
+
+  export const Disabled = {
+    state: "enabled",
+    toBoolean: false,
+  }
+}
+
 function Popup() {
   const [allShortlinks, setAllShortlinks] = useState<Shortlink[]>([])
   const [userInputText, setUserInputText] = useState<string>("")
-  const [isEditMode, setIsEditMode] = useState(false)
+  const [isEditMode, setIsEditMode] = useState<EditMode.Type>(EditMode.Disabled)
 
   // List all shortlinks.
   useEffect(() => {
@@ -62,25 +79,12 @@ function Popup() {
     chrome.action.setBadgeText({ text: allShortlinks.length.toString() })
   }, [allShortlinks])
 
-  // Function to delete a shortlink
-  const handleDeleteShortlink = async (shortlinkName: string) => {
-    const confirmDelete = confirm(`Do you want to delete shortlinks ${shortlinkName}`)
-    if (confirmDelete) {
-      await deleteMultipleShortlinks(shortlinkName)
-    }
-  }
-
-  // Function to edit a shortlink
-  const handleEditShortlink = async (shortlinkName: string) => {
-    await editShortlink(shortlinkName)
-  }
-
   return (
     <div id="app">
       <input
         autoFocus={true}
         id="shortlink-input"
-        placeholder='Type new shortlink or "copy/c or go/g or delete/d <shortlinks>" then Enter'
+        placeholder='Type a name for your tab(s) or "copy/c, go/g, delete/d <name>" => Enter'
         onChange={(event) => handleOnChange(event, setUserInputText)}
         onKeyDown={(event) => handleEnterKey(event, userInputText)}
       />
@@ -91,20 +95,20 @@ function Popup() {
         ) : (
           <>
             <div className="title">Your shortlinks: </div>
-            {isEditMode
-              ? renderEditMode(allShortlinks, handleEditShortlink, handleDeleteShortlink)
+            {isEditMode === EditMode.Enabled
+              ? renderEditMode(allShortlinks, isEditMode)
               : renderViewMode(allShortlinks)}
           </>
         )}
         <br />
         <div className="app-footer">
           <b>Count: {allShortlinks.length}</b>
-          {!isEditMode ? (
-            <button className="edit-btn" onClick={(e) => setIsEditMode(true)}>
+          {isEditMode === EditMode.Disabled ? (
+            <button className="edit-btn" onClick={(e) => setIsEditMode(EditMode.Enabled)}>
               ✏️ Edit Shortlinks
             </button>
           ) : (
-            <button className="edit-btn" onClick={(e) => setIsEditMode(false)}>
+            <button className="edit-btn" onClick={(e) => setIsEditMode(EditMode.Disabled)}>
               ✅ Finish Editing
             </button>
           )}
@@ -116,25 +120,26 @@ function Popup() {
 
 function renderViewMode(allShortlinks: Shortlink[]) {
   return (
-    <div>
-      <div className="shortlink-container">
-        {allShortlinks.map((shortlink) => (
-          <code key={shortlink.name} className="shortlink">
-            <div className="shortlink-link" onClick={() => openTabs(shortlink.name)}>
-              {shortlink.name}
-            </div>
-          </code>
-        ))}
-      </div>
+    <div className="shortlink-container">
+      {allShortlinks.map((shortlink) => (
+        <code key={shortlink.name} className="shortlink">
+          <div className="shortlink-link" onClick={() => openTabs(shortlink.name)}>
+            {shortlink.name}
+          </div>
+        </code>
+      ))}
     </div>
   )
 }
 
-function renderEditMode(
-  allShortlinks: Shortlink[],
-  handleEditShortlink: (shortlinkName: string) => Promise<void>,
-  handleDeleteShortlink: (shortlinkName: string) => Promise<void>,
-) {
+function renderEditMode(allShortlinks: Shortlink[], isEditMode: EditMode.Type) {
+  const confirmBeforeDeleteShortlink = async (shortlinkName: string) => {
+    const confirmDelete = confirm(`Do you want to delete shortlinks ${shortlinkName}`)
+    if (confirmDelete) {
+      await deleteMultipleShortlinks(shortlinkName, isEditMode)
+    }
+  }
+
   return (
     <div className="grid-wrapper">
       <div className="grid-header">
@@ -154,10 +159,13 @@ function renderEditMode(
               {shortlink.name}
             </div>
             <div className="actions grid-cell">
-              <button className="edit-btn" onClick={() => handleEditShortlink(shortlink.name)}>
+              <button className="edit-btn" onClick={() => editShortlink(shortlink.name)}>
                 Edit
               </button>
-              <button className="delete-btn" onClick={() => handleDeleteShortlink(shortlink.name)}>
+              <button
+                className="delete-btn"
+                onClick={() => confirmBeforeDeleteShortlink(shortlink.name)}
+              >
                 Delete
               </button>
             </div>
@@ -174,7 +182,7 @@ function openTabs(shortlinkName: string) {
 
 function handleOnChange(
   event: React.ChangeEvent<HTMLInputElement>,
-  setUserInputText: React.Dispatch<React.SetStateAction<string>>,
+  setUserInputText: React.Dispatch<React.SetStateAction<string>>
 ) {
   const typedText = event.target.value
   console.log("typedText:", typedText)
@@ -183,13 +191,15 @@ function handleOnChange(
 
 async function handleEnterKey(
   event: React.KeyboardEvent<HTMLInputElement>,
-  rawUserInputText: string,
+  rawUserInputText: string
 ) {
   if (event.key !== "Enter") return
 
   console.log("typed: ", `'${rawUserInputText}'`)
 
-  const command = parseUserInputTextIntoCommand(rawUserInputText)
+  const command: Command.Type = convertUserInputTextIntoCommand(rawUserInputText)
+
+  console.log("parsed command: ", command)
 
   switch (command.kind) {
     case "nothing": {
@@ -201,7 +211,7 @@ async function handleEnterKey(
       return
     }
     case "delete": {
-      await deleteMultipleShortlinks(command.shortlinkName)
+      await deleteMultipleShortlinks(command.shortlinkName, EditMode.Disabled)
       return
     }
     case "go": {
@@ -210,6 +220,37 @@ async function handleEnterKey(
     }
     case "copytoclipboard": {
       await copyMultipleShortlinks(command.shortlinkNames)
+      return
+    }
+    case "debug": {
+      // ::debug:: clear.
+      if (command.arg === "clear") {
+        chrome.storage.sync.clear()
+      }
+      // ::debug:: add <number>?
+      else if (command.arg.startsWith("add")) {
+        let it = tryToParse("add", command.arg)
+        console.log("it: ", it)
+
+        let numberToAdd = 50
+        let delayMs = 10
+
+        if (it.kind === "some") {
+          let maybeNumber = parseInt(it.value)
+          if (!isNaN(maybeNumber)) {
+            numberToAdd = maybeNumber
+            console.log("numberToAdd: ", numberToAdd)
+          }
+        }
+
+        // Add numberToAdd shortlinks here for testing using tryToSaveShortlink function.
+        for (let i = 0; i < numberToAdd; i++) {
+          let randomName = generateRandomName() + "-" + i
+          await saveToSyncStorage(randomName, ["https://r3bl.com"])
+          // Wait for delayMs, to prevent Chrome from throttling this API call.
+          await new Promise((resolve) => setTimeout(resolve, delayMs))
+        }
+      }
       return
     }
   }
@@ -221,7 +262,7 @@ function main() {
   root.render(
     <React.StrictMode>
       <Popup />
-    </React.StrictMode>,
+    </React.StrictMode>
   )
 }
 

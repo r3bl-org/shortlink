@@ -21,12 +21,38 @@
  *   SOFTWARE.
  */
 
-import { Command, convertUserInputTextIntoCommand } from "../command"
+const adjectives = [
+  "rebellious",
+  "happy",
+  "silly",
+  "funny",
+  "crazy",
+  "friendly",
+  "curious",
+  "clever",
+  "brave",
+  "honest",
+  "kind",
+  "empowered",
+]
 
-describe("parse command", () => {
-  it("can parse save <shortlink>", () => {
-    const command = convertUserInputTextIntoCommand("docs") as Command.Save
-    expect(command.kind).toBe("save")
-    expect(command.shortlinkName).toBe("docs")
-  })
-})
+const nouns = [
+  "panda",
+  "unicorn",
+  "dolphin",
+  "koala",
+  "otter",
+  "penguin",
+  "giraffe",
+  "elephant",
+  "kitten",
+  "mouse",
+]
+
+export function generateRandomName(): string {
+  const adjectiveIndex = Math.floor(Math.random() * adjectives.length)
+  const nounIndex = Math.floor(Math.random() * nouns.length)
+  const adjective = adjectives[adjectiveIndex]
+  const noun = nouns[nounIndex]
+  return `${adjective}-${noun}`
+}

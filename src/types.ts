@@ -33,3 +33,16 @@ export interface Shortlink {
   name: string
   urls: Urls[]
 }
+
+export namespace Option {
+  type Some<T> = {
+    kind: "some"
+    value: T
+  }
+
+  type None<T> = {
+    kind: "none"
+  }
+
+  export type Type<T> = Some<T> | None<T>
+}

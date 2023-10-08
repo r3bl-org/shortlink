@@ -22,6 +22,7 @@
  */
 
 import { openUrlsInTabs } from "./omnibox"
+import { EditMode } from "./popup"
 import { Delays, Messages, showToast, triggerAutoCloseWindowWithDelay } from "./toast"
 import { Shortlink, Urls } from "./types"
 
@@ -75,7 +76,9 @@ export async function tryToSaveShortlink(newShortlinkName: string) {
   if (existingValue !== undefined && existingValue.length > 0) {
     // Shortlink already exists, ask the user if they want to overwrite it.
     const confirmOverwrite = confirm(
-      `The shortlink '${newShortlinkName}' with value '${existingValue.join(", ")}' already exists. Do you want to overwrite it?`
+      `The shortlink '${newShortlinkName}' with value '${existingValue.join(
+        ", "
+      )}' already exists. Do you want to overwrite it?`
     )
 
     if (confirmOverwrite) {
@@ -124,7 +127,7 @@ export async function openMultipleShortlinks(shortlinkArg: string) {
   openUrlsInTabs(urls)
 }
 
-export async function deleteMultipleShortlinks(shortlinkArg: string) {
+export async function deleteMultipleShortlinks(shortlinkArg: string, editMode: EditMode.Type) {
   const names = extractMultipleShortlinkNames(shortlinkArg)
 
   console.log("shortlink names to delete: ", names)
@@ -132,7 +135,6 @@ export async function deleteMultipleShortlinks(shortlinkArg: string) {
   // No arg provided.
   if (names === undefined || names.length === 0) {
     showToast(`Please provide a shortlink name to delete`, Delays.default, "warning")
-    return
   }
   // Arg provided.
   else {
@@ -140,9 +142,11 @@ export async function deleteMultipleShortlinks(shortlinkArg: string) {
       await removeFromSyncStorage(name)
     }
     showToast(`Deleting shortlink(s) ${names.join(", ")}`, Delays.default, "info")
-    // Do not close this popup.
-    // triggerAutoCloseWindowWithDelay()
-    return
+
+    // Do not close this popup if we are in edit mode.
+    if (editMode === EditMode.Disabled) {
+      triggerAutoCloseWindowWithDelay()
+    }
   }
 }
 

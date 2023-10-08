@@ -29,12 +29,11 @@
   --default-border-radius: 6px;
   --default-border-style: 2px solid rgb(119, 129, 147);
   --max-height-of-popup: 300px;
-  --width-of-popup: 100ch;
+  --width-of-popup: 95ch;
 }
 
 body {
   width: var(--width-of-popup);
-  max-height: var(--max-height-of-popup);
   margin: var(--default-margin);
   padding: var(--default-padding);
   font-family: "Iosevka", monospace;
@@ -46,6 +45,8 @@ body {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
+  max-height: var(--max-height-of-popup);
+  overflow-y: auto;
 }
 
 .shortlink {

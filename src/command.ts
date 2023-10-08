@@ -21,37 +21,43 @@
  *   SOFTWARE.
  */
 
-export type CommandDelete = {
-  kind: "delete"
-  shortlinkName: string
+import { Option } from "./types"
+
+// The string typed in the popup text input is parsed into a `Command.Type`.
+export namespace Command {
+  export type Delete = {
+    kind: "delete"
+    shortlinkName: string
+  }
+
+  export type Go = {
+    kind: "go"
+    shortlinkName: string
+  }
+
+  export type Save = {
+    kind: "save"
+    shortlinkName: string
+  }
+
+  export type Nothing = {
+    kind: "nothing"
+  }
+
+  export type CopyToClipboard = {
+    kind: "copytoclipboard"
+    shortlinkNames: string
+  }
+
+  export type Debug = {
+    kind: "debug"
+    arg: string
+  }
+
+  export type Type = Delete | Go | Save | Nothing | CopyToClipboard | Debug
 }
 
-export type CommandGo = {
-  kind: "go"
-  shortlinkName: string
-}
-
-export type CommandSave = {
-  kind: "save"
-  shortlinkName: string
-}
-
-export type CommandNothing = {
-  kind: "nothing"
-}
-
-export type CommandCopyToClipboard = {
-  kind: "copytoclipboard"
-  shortlinkNames: string
-}
-
-export type Command =
-  | CommandDelete
-  | CommandGo
-  | CommandSave
-  | CommandNothing
-  | CommandCopyToClipboard
-
+// This is typed by the user in the popup text input.
 export const CommandName = {
   Go: "go ",
   GoShort: "g ",
@@ -59,9 +65,23 @@ export const CommandName = {
   DeleteShort: "d ",
   CopyToClipboard: "copy ",
   CopyToClipboardShort: "c ",
+  Debug: "::debug:: ",
 }
 
-export function parseUserInputTextIntoCommand(userInputText: string): Command {
+export function tryToParse(commandName: string, userInputText: string): Option.Type<string> {
+  if (userInputText.startsWith(commandName)) {
+    const arg = userInputText.replace(commandName, "").trim()
+    return {
+      kind: "some",
+      value: arg,
+    }
+  }
+  return {
+    kind: "none",
+  }
+}
+
+export function convertUserInputTextIntoCommand(userInputText: string): Command.Type {
   // User typed nothing & just pressed enter.
   if (userInputText !== undefined && userInputText.length === 0) {
     return {
@@ -70,64 +90,75 @@ export function parseUserInputTextIntoCommand(userInputText: string): Command {
   }
 
   // Delete shortlink using `delete`.
-  if (userInputText.startsWith(CommandName.Delete)) {
-    const shortlinkArg = userInputText.replace(CommandName.Delete, "").trim()
+  let it = tryToParse(CommandName.Delete, userInputText)
+  if (it.kind === "some") {
     return {
       kind: "delete",
-      shortlinkName: shortlinkArg,
+      shortlinkName: it.value,
     }
   }
 
   // Delete shortlink using `d`.
-  if (userInputText.startsWith(CommandName.DeleteShort)) {
-    const shortlinkArg = userInputText.replace(CommandName.DeleteShort, "").trim()
+  it = tryToParse(CommandName.DeleteShort, userInputText)
+  if (it.kind === "some") {
     return {
       kind: "delete",
-      shortlinkName: shortlinkArg,
+      shortlinkName: it.value,
     }
   }
 
   // Open shortlink using `go`.
-  if (userInputText.startsWith(CommandName.Go)) {
-    const shortlinkArg = userInputText.replace(CommandName.Go, "").trim()
+  it = tryToParse(CommandName.Go, userInputText)
+  if (it.kind === "some") {
     return {
       kind: "go",
-      shortlinkName: shortlinkArg,
+      shortlinkName: it.value,
     }
   }
 
   // Open shortlink using `g`.
-  if (userInputText.startsWith(CommandName.GoShort)) {
-    const shortlinkArg = userInputText.replace(CommandName.GoShort, "").trim()
+  it = tryToParse(CommandName.GoShort, userInputText)
+  if (it.kind === "some") {
     return {
       kind: "go",
-      shortlinkName: shortlinkArg,
+      shortlinkName: it.value,
     }
   }
 
-  // Open shortlink using `copy`.
-  if (userInputText.startsWith(CommandName.CopyToClipboard)) {
-    const shortlinkArg = userInputText.replace(CommandName.CopyToClipboard, "").trim()
+  // Copy shortlink using `copy`.
+  it = tryToParse(CommandName.CopyToClipboard, userInputText)
+  if (it.kind === "some") {
     return {
       kind: "copytoclipboard",
-      shortlinkNames: shortlinkArg,
+      shortlinkNames: it.value,
     }
   }
 
-  // Open shortlink using `c`.
-  if (userInputText.startsWith(CommandName.CopyToClipboardShort)) {
-    const shortlinkArg = userInputText.replace(CommandName.CopyToClipboardShort, "").trim()
+  // Copy shortlink using `c`.
+  it = tryToParse(CommandName.CopyToClipboardShort, userInputText)
+  if (it.kind === "some") {
     return {
       kind: "copytoclipboard",
-      shortlinkNames: shortlinkArg,
+      shortlinkNames: it.value,
+    }
+  }
+
+  // Debug shortlink using `::debug::`.
+  it = tryToParse(CommandName.Debug, userInputText)
+  if (it.kind === "some") {
+    return {
+      kind: "debug",
+      arg: it.value,
     }
   }
 
   // Default command: Save shortlink using `save`, validate the shortlink name.
-  const shortlinkArg = validateShortlinkName(userInputText)
-  return {
-    kind: "save",
-    shortlinkName: shortlinkArg,
+  {
+    const shortlinkArg = validateShortlinkName(userInputText)
+    return {
+      kind: "save",
+      shortlinkName: shortlinkArg,
+    }
   }
 }
 
