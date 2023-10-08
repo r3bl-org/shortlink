@@ -21,6 +21,7 @@
  *   SOFTWARE.
  */
 
+import { extractMultipleShortlinkNames } from "./command"
 import { openUrlsInTabs } from "./omnibox"
 import { EditMode } from "./popup"
 import { Delays, Messages, showToast, triggerAutoCloseWindowWithDelay } from "./toast"
@@ -215,14 +216,4 @@ export function getFromSyncStorage(key: string): Promise<Urls> {
       }
     })
   })
-}
-
-// Given a string of shortlink names, extract them into an array. The names can be
-// separated by `;`, `,` or space.
-// More info: https://sl.bing.net/giOzxFaWCWq
-export function extractMultipleShortlinkNames(shortlinkNames: string): string[] {
-  const splitted = shortlinkNames.split(/;|,| /)
-  const splitted_no_empty = splitted.filter((it) => it.trim() !== "")
-  const splitted_trimmed = splitted_no_empty.map((it) => it.trim())
-  return splitted_trimmed
 }

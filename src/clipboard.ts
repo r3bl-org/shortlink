@@ -21,7 +21,8 @@
  *   SOFTWARE.
  */
 
-import { extractMultipleShortlinkNames, getUrlsForShortlinkName } from "./storage"
+import { extractMultipleShortlinkNames } from "./command"
+import { getUrlsForShortlinkName } from "./storage"
 import { Delays, Messages, showToast, triggerAutoCloseWindowWithDelay } from "./toast"
 import { Urls } from "./types"
 
@@ -58,7 +59,7 @@ function copyToClipboard(text: string): Promise<void> {
         copyToClipboardFallback(text)
         console.log("Copied to clipboard using fallback: " + text)
         resolve()
-      },
+      }
     )
   })
 }

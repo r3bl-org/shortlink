@@ -21,7 +21,7 @@
  *   SOFTWARE.
  */
 
-import { validateShortlinkName } from "../command"
+import { extractMultipleShortlinkNames, validateShortlinkName } from "../command"
 
 test("validateShortlinkName replaces spaces and commas with underscores", () => {
   const input = "hello, wor-ld  , "
@@ -35,4 +35,32 @@ test("validateShortlinkName replaces too many underscores with a single undersco
   const expectedOutput = "hello_world"
   const actualOutput = validateShortlinkName(input)
   expect(actualOutput).toBe(expectedOutput)
+})
+
+describe("storage", () => {
+  describe("extractMultipleShortlinkNames", () => {
+    it("should extract shortlink names separated by semicolons", () => {
+      const input = "example1;example2;example3"
+      const result = extractMultipleShortlinkNames(input)
+      expect(result).toEqual(["example1", "example2", "example3"])
+    })
+
+    it("should extract shortlink names separated by commas", () => {
+      const input = "example1,example2,example3"
+      const result = extractMultipleShortlinkNames(input)
+      expect(result).toEqual(["example1", "example2", "example3"])
+    })
+
+    it("should extract shortlink names separated by spaces", () => {
+      const input = "example1 example2 example3"
+      const result = extractMultipleShortlinkNames(input)
+      expect(result).toEqual(["example1", "example2", "example3"])
+    })
+
+    it("should ignore empty elements", () => {
+      const input = "example1, ,example2; ;example3"
+      const result = extractMultipleShortlinkNames(input)
+      expect(result).toEqual(["example1", "example2", "example3"])
+    })
+  })
 })
