@@ -110,5 +110,6 @@ Run `npx jest` or `npm run test`.
 
 ### Lint
 
-Run 'npm run lint' to run eslint
-Run 'npm run fix-lint' to fix the fixable errors or warning
+Run `npm run lint` to run eslint
+
+Run `npm run fix-lint` to fix the fixable errors or warning
