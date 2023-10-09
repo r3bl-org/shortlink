@@ -1,0 +1,9 @@
+{
+  "plugins": ["@typescript-eslint", "react-hooks"],
+  "extends": ["plugin:@typescript-eslint/recommended", "prettier", "plugin:react-hooks/recommended"],
+  "ignorePatterns": ["node_modules/", "**/*.css"],
+  "rules": {
+    "@typescript-eslint/no-unused-vars": "error",
+    "@typescript-eslint/no-explicit-any": "error"
+  }
+}
