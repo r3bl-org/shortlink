@@ -99,6 +99,7 @@ Run watch mode.
 
 type `Ctrl + Shift + B`
 
+
 ## Load extension to chrome
 
 Load `dist` directory.
@@ -106,3 +107,8 @@ Load `dist` directory.
 ## Test
 
 Run `npx jest` or `npm run test`.
+
+### Lint
+
+Run 'npm run lint' to run eslint
+Run 'npm run fix-lint' to fix the fixable errors or warning
