@@ -56,6 +56,7 @@ export namespace EditMode {
 function Popup() {
   const [allShortlinks, setAllShortlinks] = useState<Shortlink[]>([])
   const [userInputText, setUserInputText] = useState<string>("")
+  const [searchText, setSearchText] = useState<string>("")
   const [isEditMode, setIsEditMode] = useState<EditMode.Type>(EditMode.Disabled)
 
   // List all shortlinks.
@@ -79,6 +80,10 @@ function Popup() {
     chrome.action.setBadgeText({ text: allShortlinks.length.toString() })
   }, [allShortlinks])
 
+  const filteredShortlinks = searchText
+    ? allShortlinks.filter((shortlink) => shortlink.name.match(new RegExp(searchText, "i")))
+    : allShortlinks
+
   return (
     <div id="app">
       <input
@@ -90,14 +95,24 @@ function Popup() {
       />
 
       <div id="links">
+        {allShortlinks.length > 0 && (
+          <input
+            id="shortlink-search-input"
+            placeholder="Search shortlinks..."
+            onChange={(event) => setSearchText(event.target.value)}
+          />
+        )}
+
         {allShortlinks.length === 0 ? (
           "You don't have any shortlinks yet 🤷"
+        ) : filteredShortlinks.length === 0 ? (
+          "No searched shortlinks found 🤷"
         ) : (
           <>
             <div className="title">Your shortlinks: </div>
             {isEditMode === EditMode.Enabled
-              ? renderEditMode(allShortlinks, isEditMode)
-              : renderViewMode(allShortlinks)}
+              ? renderEditMode(filteredShortlinks, isEditMode)
+              : renderViewMode(filteredShortlinks)}
           </>
         )}
         <br />

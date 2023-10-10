@@ -65,7 +65,8 @@ body {
 }
 
 /* Flex children. */
-#shortlink-input {
+#shortlink-input,
+#shortlink-search-input {
   flex-grow: 1;
   border-radius: var(--default-border-radius);
   border: var(--default-border-style);
@@ -74,6 +75,10 @@ body {
   background: #1c2c44;
   color: #f8f8f2;
   outline: none;
+}
+
+#shortlink-search-input {
+  width: 98%;
 }
 
 *::placeholder {
