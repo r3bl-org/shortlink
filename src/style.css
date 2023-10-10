@@ -23,20 +23,23 @@
 
 @import url("./reset.css");
 
+/* Chrome extension has a max height of 800px and max width of 600px. */
+
 :root {
   --default-margin: 8px;
   --default-padding: 8px;
   --default-border-radius: 6px;
   --default-border-style: 2px solid rgb(119, 129, 147);
   --max-height-of-popup: 300px;
-  --width-of-popup: 95ch;
+  width: 750px;
 }
 
 body {
-  width: var(--width-of-popup);
+  width: 100%;
+  height: 100%;
   margin: var(--default-margin);
   padding: var(--default-padding);
-  font-family: "Iosevka", monospace;
+  font-family: "Iosevka Term", "Fira Code", monospace;
   background: #5f6176;
   color: aliceblue;
 }
