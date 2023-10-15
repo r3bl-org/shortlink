@@ -84,6 +84,8 @@ function Popup() {
     ? allShortlinks.filter((shortlink) => shortlink.name.match(new RegExp(searchText, "i")))
     : allShortlinks
 
+  const showCurrentUrlsDiv = currentUrls.length > 0
+
   return (
     <div id="app">
       <input
@@ -128,7 +130,9 @@ function Popup() {
             </button>
           )}
         </div>
-        {currentUrls.length > 0 && <div className="current-url"> Current: {currentUrls}</div>}
+        <div className={`current-url ${showCurrentUrlsDiv ? "show" : "hide"}`}>
+          Current: {currentUrls}
+        </div>
       </div>
     </div>
   )
@@ -139,7 +143,7 @@ function renderViewMode(
   setCurrentUrls: React.Dispatch<React.SetStateAction<string>>
 ) {
   return (
-    <div className="shortlink-container">
+    <div className="shortlink-container" onMouseLeave={() => setCurrentUrls("")}>
       {allShortlinks.map((shortlink) => (
         <code key={shortlink.name} className="shortlink">
           <div
@@ -282,7 +286,7 @@ async function handleEnterKey(
         // Add numberToAdd shortlinks here for testing using tryToSaveShortlink function.
         for (let i = 0; i < numberToAdd; i++) {
           let randomName = generateRandomName() + "-" + i
-          await saveToSyncStorage(randomName, ["https://r3bl.com"])
+          await saveToSyncStorage(randomName, ["https://r3bl.com/?q=" + i])
           // Wait for delayMs, to prevent Chrome from throttling this API call.
           await new Promise((resolve) => setTimeout(resolve, delayMs))
         }

@@ -32,6 +32,7 @@
   --default-border-style: 2px solid rgb(119, 129, 147);
   --max-height-of-popup: 300px;
   width: 750px;
+  --default-animation-duration: 0.5s;
 }
 
 body {
@@ -140,7 +141,7 @@ h1 {
   align-items: center;
 }
 
-.grid-body>.grid-row:last-child {
+.grid-body > .grid-row:last-child {
   border-bottom: none;
 }
 
@@ -164,11 +165,49 @@ h1 {
   align-items: center;
 }
 
+/* Set initial state of the div */
 .current-url {
+  opacity: 0.3;
+  transition-property: all;
+  /* https://developer.mozilla.org/en-US/docs/Web/CSS/transition-property */
+  transition: height var(--default-animation-duration) ease-in-out,
+    opacity var(--default-animation-duration) ease-in-out,
+    transform var(--default-animation-duration) ease-in-out;
+  transform: translateY(-100%);
+
+  /* https://developer.mozilla.org/en-US/docs/Web/CSS/height */
+  height: 0;
+
   display: flex;
   color: #f1f5f9;
   font-size: 0.8rem;
   padding-top: 0.5rem;
+}
+
+/* Set state when the div is shown */
+.current-url.show {
+  opacity: 1;
+  transform: translateY(0px);
+
+  height: 2em;
+
+  /* https://developer.mozilla.org/en-US/docs/Web/CSS/transition-delay */
+  transition-delay:
+    /*height*/ 0s, /*opacity*/ calc(var(--default-animation-duration) * 0.2),
+    /*transform*/ 0s;
+}
+
+/* Set state when the div is hidden */
+.current-url.hide {
+  opacity: 0;
+  transform: translateY(-100%);
+
+  height: 0;
+
+  /* https://developer.mozilla.org/en-US/docs/Web/CSS/transition-delay */
+  transition-delay:
+  /*height*/ calc(var(--default-animation-duration) * 0.2), /*opacity*/ 0s,
+    /*transform*/ calc(var(--default-animation-duration) * 0.2);
 }
 
 /* Buttons. */
