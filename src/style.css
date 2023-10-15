@@ -140,7 +140,7 @@ h1 {
   align-items: center;
 }
 
-.grid-body > .grid-row:last-child {
+.grid-body>.grid-row:last-child {
   border-bottom: none;
 }
 
@@ -162,6 +162,13 @@ h1 {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.current-url {
+  display: flex;
+  color: #f1f5f9;
+  font-size: 0.8rem;
+  padding-top: 0.5rem;
 }
 
 /* Buttons. */
