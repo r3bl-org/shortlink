@@ -36,7 +36,7 @@ import {
 } from "./storage"
 import "./style.css"
 import { Delays, Messages, showToast } from "./toast"
-import { Shortlink } from "./types"
+import { Shortlink, Urls } from "./types"
 
 // Workaround for an enum w/ a method.
 export namespace EditMode {
@@ -58,7 +58,7 @@ function Popup() {
   const [userInputText, setUserInputText] = useState<string>("")
   const [searchText, setSearchText] = useState<string>("")
   const [isEditMode, setIsEditMode] = useState<EditMode.Type>(EditMode.Disabled)
-
+  const [currentUrls, setCurrentUrls] = useState<string>("")
   // List all shortlinks.
   useEffect(() => {
     getAllShortlinks().then((allShortlinks) => {
@@ -112,7 +112,7 @@ function Popup() {
             <div className="title">Your shortlinks: </div>
             {isEditMode === EditMode.Enabled
               ? renderEditMode(filteredShortlinks, isEditMode)
-              : renderViewMode(filteredShortlinks)}
+              : renderViewMode(filteredShortlinks, setCurrentUrls)}
           </>
         )}
         <br />
@@ -128,17 +128,25 @@ function Popup() {
             </button>
           )}
         </div>
+        {currentUrls.length > 0 && <div className="current-url"> Current: {currentUrls}</div>}
       </div>
     </div>
   )
 }
 
-function renderViewMode(allShortlinks: Shortlink[]) {
+function renderViewMode(
+  allShortlinks: Shortlink[],
+  setCurrentUrls: React.Dispatch<React.SetStateAction<string>>
+) {
   return (
     <div className="shortlink-container">
       {allShortlinks.map((shortlink) => (
         <code key={shortlink.name} className="shortlink">
-          <div className="shortlink-link" onClick={() => openTabs(shortlink.name)}>
+          <div
+            className="shortlink-link"
+            onClick={() => openTabs(shortlink.name)}
+            onMouseEnter={() => handleOnMouseEnter(shortlink.urls, setCurrentUrls)}
+          >
             {shortlink.name}
           </div>
         </code>
@@ -202,6 +210,19 @@ function handleOnChange(
   const typedText = event.target.value
   console.log("typedText:", typedText)
   setUserInputText(typedText)
+}
+function handleOnMouseEnter(
+  urls: Urls[],
+  setCurrentUrls: React.Dispatch<React.SetStateAction<string>>
+) {
+  setCurrentUrls(urls.map((url) => truncateWithEllipsis(url.toString(), 90)).join(", "))
+}
+
+function truncateWithEllipsis(str: string, maxLength: number): string {
+  if (str.length <= maxLength) {
+    return str
+  }
+  return `${str.slice(0, maxLength - 3)}...`
 }
 
 async function handleEnterKey(
