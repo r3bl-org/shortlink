@@ -21,6 +21,7 @@
  *   SOFTWARE.
  */
 
+import { copyToClipboard } from "./clipboard"
 import { extractMultipleShortlinkNames } from "./command"
 import { openUrlsInTabs } from "./omnibox"
 import { EditMode } from "./popup"
@@ -41,6 +42,59 @@ export async function getAllShortlinks(): Promise<Shortlink[]> {
   }
 
   return allShortlinks
+}
+
+export async function copyAllShortlinksToClipboard() {
+  try {
+    const allShortlinks = await getAllShortlinks()
+    const shortlinksSerialized = JSON.stringify(allShortlinks, null, 2)
+    await copyToClipboard(shortlinksSerialized)
+    showToast("All shortlinks copied to clipboard", Delays.default, "success")
+  } catch (error) {
+    console.error("Error copying shortlinks to clipboard:", error)
+    showToast("Error copying shortlinks to clipboard", Delays.default, "error")
+  }
+}
+
+export async function importShortlinksFromJson(jsonString: string) {
+  async function wait() {
+    return new Promise((resolve) => setTimeout(resolve, 10))
+  }
+
+  try {
+    const parsedShortlinks = JSON.parse(jsonString)
+
+    console.log("parsedShortlinks: ", parsedShortlinks)
+
+    if (!Array.isArray(parsedShortlinks)) {
+      console.error("Invalid JSON format for shortlinks.")
+      showToast("Invalid JSON format for shortlinks", Delays.default, "error")
+      return
+    }
+
+    // Clear out all existing shortlinks before importing.
+    chrome.storage.sync.clear()
+    await wait()
+
+    for (const shortlink of parsedShortlinks) {
+      if (!shortlink.name || !shortlink.urls) {
+        console.error("Invalid shortlink format:", shortlink)
+        showToast("Invalid shortlink format", Delays.default, "error")
+        continue
+      }
+
+      // Save each shortlink to storage
+      await saveToSyncStorage(shortlink.name, shortlink.urls)
+      await wait()
+
+      console.log("name: ", shortlink.name, ", urls: ", shortlink.urls)
+    }
+
+    showToast("Shortlinks imported successfully", Delays.default, "success")
+  } catch (error) {
+    console.error("Error importing shortlinks:", error)
+    showToast("Error importing shortlinks", Delays.default, "error")
+  }
 }
 
 export async function actuallySaveShortlink(shortlinkName: string, urls: Urls, overwrite: boolean) {

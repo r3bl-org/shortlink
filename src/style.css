@@ -192,7 +192,7 @@ h1 {
 
   /* https://developer.mozilla.org/en-US/docs/Web/CSS/transition-delay */
   transition-delay:
-    /*height*/ 0s, /*opacity*/ calc(var(--default-animation-duration) * 0.2),
+     /*height*/ 0s, /*opacity*/ calc(var(--default-animation-duration) * 0.2),
     /*transform*/ 0s;
 }
 
@@ -205,7 +205,7 @@ h1 {
 
   /* https://developer.mozilla.org/en-US/docs/Web/CSS/transition-delay */
   transition-delay:
-  /*height*/ calc(var(--default-animation-duration) * 0.2), /*opacity*/ 0s,
+   /*height*/ calc(var(--default-animation-duration) * 0.2), /*opacity*/ 0s,
     /*transform*/ calc(var(--default-animation-duration) * 0.2);
 }
 
@@ -234,4 +234,46 @@ button.edit-btn {
 
 button.delete-btn {
   background-color: #e94e77;
+}
+
+.editor-wrapper {
+  display: flex;
+  flex-direction: column;
+  padding: var(--default-padding);
+}
+
+.textarea-json {
+  height: 300px;
+  overflow: auto;
+  background-image: linear-gradient(to bottom, #1c2c44 0%, #162336 100%);
+  border-radius: var(--default-border-radius);
+  outline: none;
+  border: var(--default-border-style);
+  resize: none;
+  padding: var(--default-padding);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.textarea-json:focus {
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+.textarea-json::-webkit-scrollbar {
+  width: 8px;
+}
+
+.textarea-json::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+.textarea-json::-webkit-scrollbar-thumb {
+  background-image: linear-gradient(to bottom, #850a79 0%, #6e0863 100%);
+  border-radius: 5px;
+  cursor: default;
+}
+
+button.save-btn {
+  background-color: #2b3733;
+  margin-top: 10px;
+  align-self: flex-end;
 }

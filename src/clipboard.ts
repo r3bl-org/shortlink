@@ -46,7 +46,7 @@ export async function copyMultipleShortlinks(shortlinkArg: string) {
  * https://developer.chrome.com/docs/extensions/mv3/declare_permissions/
  * https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Interact_with_the_clipboard#writing_to_the_clipboard
  */
-function copyToClipboard(text: string): Promise<void> {
+export function copyToClipboard(text: string): Promise<void> {
   return new Promise((resolve, reject) => {
     navigator.clipboard.writeText(text).then(
       () => {
