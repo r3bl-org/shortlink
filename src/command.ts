@@ -54,7 +54,17 @@ export namespace Command {
     arg: string
   }
 
-  export type Type = Delete | Go | Save | Nothing | CopyToClipboard | Debug
+  export type Export={
+    kind: "export"
+    shortlinkName: string
+  }
+
+  export type Import={
+    kind: "import"
+    shortlinkName: string
+  }
+
+  export type Type = Delete | Go | Save | Nothing | CopyToClipboard | Debug | Export | Import
 }
 
 // This is typed by the user in the popup text input.
@@ -65,6 +75,10 @@ export const CommandName = {
   DeleteShort: "d ",
   CopyToClipboard: "copy ",
   CopyToClipboardShort: "c ",
+  Export: "export",
+  ExportShort: "e",
+  Import: "import",
+  ImportShort:"i",
   Debug: "::debug:: ",
 }
 
@@ -124,6 +138,43 @@ export function convertUserInputTextIntoCommand(userInputText: string): Command.
       shortlinkName: it.value,
     }
   }
+
+  // Export shortlink using `export`.
+  it = tryToParse(CommandName.Export, userInputText)
+  if (it.kind === "some") {
+    return {
+      kind: "export",
+      shortlinkName: it.value
+    }
+  }
+
+  // Export shortlink using `e`.
+  it = tryToParse(CommandName.ExportShort, userInputText)
+  if (it.kind === "some") {
+    return {
+      kind: "export",
+      shortlinkName: it.value
+    }
+  }
+
+   // Import shortlink using `import`.
+   it = tryToParse(CommandName.Import, userInputText)
+   if (it.kind === "some") {
+     return {
+       kind: "import",
+       shortlinkName: it.value
+     }
+   }
+ 
+   // Import shortlink using `i`.
+   it = tryToParse(CommandName.ImportShort, userInputText)
+   if (it.kind === "some") {
+     return {
+       kind: "import",
+       shortlinkName: it.value
+     }
+   }
+
 
   // Copy shortlink using `copy`.
   it = tryToParse(CommandName.CopyToClipboard, userInputText)
