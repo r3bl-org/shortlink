@@ -40,7 +40,6 @@ body {
   height: 100%;
   margin: var(--default-margin);
   padding: var(--default-padding);
-  font-family: "Iosevka Term", "Fira Code", monospace;
   background: #5f6176;
   color: aliceblue;
 }

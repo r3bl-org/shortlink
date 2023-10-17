@@ -38,6 +38,8 @@ import "./style.css"
 import { Delays, Messages, showToast } from "./toast"
 import { Shortlink, Urls } from "./types"
 
+const MAX_LENGTH_OF_URLS_TO_DISPLAY_ON_HOVER = 75
+
 // Workaround for an enum w/ a method.
 export namespace EditMode {
   export type Type = typeof Enabled | typeof Disabled
@@ -215,11 +217,15 @@ function handleOnChange(
   console.log("typedText:", typedText)
   setUserInputText(typedText)
 }
+
 function handleOnMouseEnter(
   urls: Urls[],
   setCurrentUrls: React.Dispatch<React.SetStateAction<string>>
 ) {
-  setCurrentUrls(urls.map((url) => truncateWithEllipsis(url.toString(), 90)).join(", "))
+  let urlsToDisplay = urls.map((url) => url.toString()).join(", ")
+  let truncatedUrls = truncateWithEllipsis(urlsToDisplay, MAX_LENGTH_OF_URLS_TO_DISPLAY_ON_HOVER)
+  console.log("truncatedUrls: ", truncatedUrls)
+  setCurrentUrls(truncatedUrls)
 }
 
 function truncateWithEllipsis(str: string, maxLength: number): string {
