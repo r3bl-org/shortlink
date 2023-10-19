@@ -22,7 +22,7 @@
  */
 
 import { extractMultipleShortlinkNames } from "./command"
-import { getUrlsForShortlinkName } from "./storage"
+import { getUrlsForShortlinkName } from "./storage/storage_api"
 import { Delays, Messages, showToast, triggerAutoCloseWindowWithDelay } from "./toast"
 import { Urls } from "./types"
 

@@ -21,32 +21,39 @@
  *   SOFTWARE.
  */
 
-import { copyToClipboard } from "./clipboard"
-import { extractMultipleShortlinkNames } from "./command"
-import { openUrlsInTabs } from "./omnibox"
-import { EditMode } from "./popup"
-import { Delays, Messages, showToast, triggerAutoCloseWindowWithDelay } from "./toast"
-import { Shortlink, Urls } from "./types"
+import { copyToClipboard } from "../clipboard"
+import { extractMultipleShortlinkNames } from "../command"
+import { openUrlsInTabs } from "../omnibox"
+import { EditMode } from "../popup"
+import { Delays, Messages, showToast, triggerAutoCloseWindowWithDelay } from "../toast"
+import { Shortlink, StoredValue, Urls, delay } from "../types"
+import { getStorageProvider } from "./storage_provider"
 
-export async function getAllShortlinks(): Promise<Shortlink[]> {
-  const result: any = await chrome.storage.sync.get(null)
-
-  const allShortlinks: Shortlink[] = []
-  for (const key in result) {
-    const value: Urls[] = result[key]
-    console.log(`${key}: ${value}`)
-    allShortlinks.push({
-      name: key,
-      urls: value,
-    })
+export function createNewChromeStorageValue(urls: Urls): StoredValue {
+  return {
+    urls: urls,
+    date: Date.now(),
+    priority: 0,
   }
+}
 
-  return allShortlinks
+async function increaseExistingShortlinkPriority(key: string) {
+  const value: StoredValue = await getStorageProvider().getOne(key)
+
+  const urls: Urls = value.urls
+  const priority: number = value.priority + 1
+  const date: number = Date.now()
+
+  await getStorageProvider().setOne(key, {
+    urls: urls,
+    date: date,
+    priority: Math.min(priority, 1000), // Cap priority at 1000.
+  })
 }
 
 export async function copyAllShortlinksToClipboard() {
   try {
-    const allShortlinks = await getAllShortlinks()
+    const allShortlinks: Shortlink[] = await getStorageProvider().getAll()
     const shortlinksSerialized = JSON.stringify(allShortlinks, null, 2)
     await copyToClipboard(shortlinksSerialized)
     showToast("All shortlinks copied to clipboard", Delays.default, "success")
@@ -57,12 +64,8 @@ export async function copyAllShortlinksToClipboard() {
 }
 
 export async function importShortlinksFromJson(jsonString: string) {
-  async function wait() {
-    return new Promise((resolve) => setTimeout(resolve, 10))
-  }
-
   try {
-    const parsedShortlinks = JSON.parse(jsonString)
+    const parsedShortlinks = JSON.parse(jsonString) as Shortlink[]
 
     console.log("parsedShortlinks: ", parsedShortlinks)
 
@@ -74,7 +77,7 @@ export async function importShortlinksFromJson(jsonString: string) {
 
     // Clear out all existing shortlinks before importing.
     chrome.storage.sync.clear()
-    await wait()
+    await delay()
 
     for (const shortlink of parsedShortlinks) {
       if (!shortlink.name || !shortlink.urls) {
@@ -84,8 +87,8 @@ export async function importShortlinksFromJson(jsonString: string) {
       }
 
       // Save each shortlink to storage
-      await saveToSyncStorage(shortlink.name, shortlink.urls)
-      await wait()
+      await getStorageProvider().setOne(shortlink.name, createNewChromeStorageValue(shortlink.urls))
+      await delay()
 
       console.log("name: ", shortlink.name, ", urls: ", shortlink.urls)
     }
@@ -98,7 +101,7 @@ export async function importShortlinksFromJson(jsonString: string) {
 }
 
 export async function actuallySaveShortlink(shortlinkName: string, urls: Urls, overwrite: boolean) {
-  await saveToSyncStorage(shortlinkName, urls)
+  await getStorageProvider().setOne(shortlinkName, createNewChromeStorageValue(urls))
   if (overwrite) {
     showToast(Messages.duplicateExists, Delays.default, "info")
   } else {
@@ -107,31 +110,24 @@ export async function actuallySaveShortlink(shortlinkName: string, urls: Urls, o
   triggerAutoCloseWindowWithDelay()
 }
 
-export async function saveToSyncStorage(key: string, value: Urls): Promise<void> {
-  let newShortlinkObject = {
-    [key]: value,
+export async function tryToSaveShortlink(newShortlinkName: string) {
+  const tabs: chrome.tabs.Tab[] = await chrome.tabs.query({ currentWindow: true })
+  const highlightedTabs: chrome.tabs.Tab[] = tabs.filter((tab) => tab.highlighted)
+
+  const urls: Urls = []
+  for (const tab of highlightedTabs) {
+    if (tab.url !== undefined) {
+      urls.push(tab.url)
+    }
   }
 
-  return new Promise((resolve, reject) => {
-    chrome.storage.sync.set(newShortlinkObject, () => {
-      resolve()
-    })
-  })
-}
-
-export async function tryToSaveShortlink(newShortlinkName: string) {
-  // Only get the selected (highlighted) tabs.
-  const tabs = await chrome.tabs.query({ currentWindow: true })
-  const highlightedTabs = tabs.filter((tab) => tab.highlighted)
-  const urls = highlightedTabs.map((tab) => tab.url)
-
   // Check if the shortlink already exists in sync storage.
-  const existingValue: Urls = await getFromSyncStorage(newShortlinkName)
+  const existingValue: StoredValue = await getStorageProvider().getOne(newShortlinkName)
 
-  if (existingValue !== undefined && existingValue.length > 0) {
+  if (existingValue !== undefined && existingValue.urls.length > 0) {
     // Shortlink already exists, ask the user if they want to overwrite it.
     const confirmOverwrite = confirm(
-      `The shortlink '${newShortlinkName}' with value '${existingValue.join(
+      `The shortlink '${newShortlinkName}' with value '${existingValue.urls.join(
         ", "
       )}' already exists. Do you want to overwrite it?`
     )
@@ -169,12 +165,12 @@ export async function tryToSaveShortlink(newShortlinkName: string) {
 
 export async function openMultipleShortlinks(shortlinkArg: string) {
   const names = extractMultipleShortlinkNames(shortlinkArg)
-
   console.log("shortlink names to open: ", names)
 
   let urls: Urls = []
 
   for (const name of names) {
+    await increaseExistingShortlinkPriority(name)
     let urlsForName: Urls = await getUrlsForShortlinkName(name)
     urls = urls.concat(urlsForName)
   }
@@ -194,7 +190,7 @@ export async function deleteMultipleShortlinks(shortlinkArg: string, editMode: E
   // Arg provided.
   else {
     for (const name of names) {
-      await removeFromSyncStorage(name)
+      await getStorageProvider().removeOne(name)
     }
     showToast(`Deleting shortlink(s) ${names.join(", ")}`, Delays.default, "info")
 
@@ -233,7 +229,7 @@ export async function editShortlink(shortlinkName: string) {
     .filter((url) => url !== "")
 
   // Update the shortlink with the new URLs.
-  await saveToSyncStorage(shortlinkName, newUrls)
+  await getStorageProvider().setOne(shortlinkName, createNewChromeStorageValue(newUrls))
 
   showToast(`Shortlink '${shortlinkName}' updated.`, Delays.default, "success")
   triggerAutoCloseWindowWithDelay()
@@ -241,33 +237,12 @@ export async function editShortlink(shortlinkName: string) {
 
 export async function getUrlsForShortlinkName(shortlinkName: string): Promise<Urls> {
   try {
-    const result: Urls = await getFromSyncStorage(shortlinkName)
+    const value: StoredValue = await getStorageProvider().getOne(shortlinkName)
     console.log("getUrlsForShortlinkName: ", shortlinkName)
-    console.log("result: ", result)
-    return result
+    console.log("result: ", value.urls)
+    return value.urls
   } catch (error) {
     console.error(error)
     return []
   }
-}
-
-export function removeFromSyncStorage(key: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    chrome.storage.sync.remove(key, () => {
-      resolve()
-    })
-  })
-}
-
-export function getFromSyncStorage(key: string): Promise<Urls> {
-  return new Promise((resolve, reject) => {
-    chrome.storage.sync.get(key, (result) => {
-      if (result === undefined || result.length === 0) {
-        reject()
-      } else {
-        const urls: Urls = result[key]
-        resolve(urls)
-      }
-    })
-  })
 }

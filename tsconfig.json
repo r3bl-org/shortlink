@@ -10,7 +10,9 @@
     "outDir": "dist/js",
     "noEmitOnError": true,
     "jsx": "react",
-    "typeRoots": ["node_modules/@types"],
+    "typeRoots": [
+      "node_modules/@types"
+    ],
     "types": [
       // Support for: https://www.npmjs.com/package/@types/chrome
       // Run: `npm install --save @types/chrome`
