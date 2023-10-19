@@ -26,16 +26,7 @@ import { createRoot } from "react-dom/client"
 import { copyMultipleShortlinks } from "./clipboard"
 import { Command, convertUserInputTextIntoCommand, tryToParse } from "./command"
 import { generateRandomName } from "./friendly-random-name-generator"
-import {
-  copyAllShortlinksToClipboard,
-  deleteMultipleShortlinks,
-  editShortlink,
-  getAllShortlinks,
-  importShortlinksFromJson,
-  openMultipleShortlinks,
-  saveToSyncStorage,
-  tryToSaveShortlink,
-} from "./storage"
+import { storage_api, storage_provider } from "./storage"
 import "./style.css"
 import { Delays, Messages, showToast } from "./toast"
 import { Shortlink, Urls } from "./types"
@@ -70,17 +61,25 @@ function Popup() {
 
   // List all shortlinks.
   useEffect(() => {
-    getAllShortlinks().then((allShortlinks) => {
-      setAllShortlinks(allShortlinks)
-    })
+    console.log("init => load all shortlinks from chrome.storage.sync")
+    storage_provider
+      .getStorageProvider()
+      .getAll()
+      .then((allShortlinks) => {
+        setAllShortlinks(allShortlinks)
+      })
   }, [])
 
   // Listen to changes in storage.
   useEffect(() => {
-    chrome.storage.onChanged.addListener(() => {
-      getAllShortlinks().then((allShortlinks) => {
-        setAllShortlinks(allShortlinks)
-      })
+    chrome.storage.sync.onChanged.addListener(() => {
+      console.log("init => chrome.storage.sync.onChanged.addListener")
+      storage_provider
+        .getStorageProvider()
+        .getAll()
+        .then((allShortlinks) => {
+          setAllShortlinks(allShortlinks)
+        })
     })
   }, [])
 
@@ -112,7 +111,7 @@ function Popup() {
     let it = textareaRef.current
     if (it !== null && it.value !== "") {
       const textareaValue = it.value
-      await importShortlinksFromJson(textareaValue)
+      await storage_api.importShortlinksFromJson(textareaValue)
       setShowImportField(false)
     }
   }
@@ -189,7 +188,7 @@ function Popup() {
         return
       }
       case "export": {
-        await copyAllShortlinksToClipboard()
+        await storage_api.copyAllShortlinksToClipboard()
         return
       }
       case "import": {
@@ -197,15 +196,15 @@ function Popup() {
         return
       }
       case "save": {
-        tryToSaveShortlink(command.shortlinkName)
+        await storage_api.tryToSaveShortlink(command.shortlinkName)
         return
       }
       case "delete": {
-        await deleteMultipleShortlinks(command.shortlinkName, EditMode.Disabled)
+        await storage_api.deleteMultipleShortlinks(command.shortlinkName, EditMode.Disabled)
         return
       }
       case "go": {
-        await openMultipleShortlinks(command.shortlinkName)
+        await storage_api.openMultipleShortlinks(command.shortlinkName)
         return
       }
       case "copytoclipboard": {
@@ -236,7 +235,12 @@ function Popup() {
           // Add numberToAdd shortlinks here for testing using tryToSaveShortlink function.
           for (let i = 0; i < numberToAdd; i++) {
             let randomName = generateRandomName() + "-" + i
-            await saveToSyncStorage(randomName, ["https://r3bl.com/?q=" + i])
+            await storage_provider
+              .getStorageProvider()
+              .setOne(
+                randomName,
+                storage_api.createNewChromeStorageValue(["https://r3bl.com/?q=" + i])
+              )
             // Wait for delayMs, to prevent Chrome from throttling this API call.
             await new Promise((resolve) => setTimeout(resolve, delayMs))
           }
@@ -257,7 +261,7 @@ function renderViewMode(
         <code key={shortlink.name} className="shortlink">
           <div
             className="shortlink-link"
-            onClick={() => openTabs(shortlink.name)}
+            onClick={async () => await openTabs(shortlink.name)}
             onMouseEnter={() => handleOnMouseEnter(shortlink.urls, setCurrentUrls)}
           >
             {shortlink.name}
@@ -272,7 +276,7 @@ function renderEditMode(allShortlinks: Shortlink[], isEditMode: EditMode.Type) {
   const confirmBeforeDeleteShortlink = async (shortlinkName: string) => {
     const confirmDelete = confirm(`Do you want to delete shortlinks ${shortlinkName}`)
     if (confirmDelete) {
-      await deleteMultipleShortlinks(shortlinkName, isEditMode)
+      await storage_api.deleteMultipleShortlinks(shortlinkName, isEditMode)
     }
   }
 
@@ -291,11 +295,17 @@ function renderEditMode(allShortlinks: Shortlink[], isEditMode: EditMode.Type) {
       <div className="grid-body">
         {allShortlinks.map((shortlink) => (
           <div className="grid-row" key={shortlink.name}>
-            <div className="shortlink-link grid-cell" onClick={() => openTabs(shortlink.name)}>
+            <div
+              className="shortlink-link grid-cell"
+              onClick={async () => await openTabs(shortlink.name)}
+            >
               {shortlink.name}
             </div>
             <div className="actions grid-cell">
-              <button className="edit-btn" onClick={() => editShortlink(shortlink.name)}>
+              <button
+                className="edit-btn"
+                onClick={async () => await storage_api.editShortlink(shortlink.name)}
+              >
                 Edit
               </button>
               <button
@@ -312,8 +322,8 @@ function renderEditMode(allShortlinks: Shortlink[], isEditMode: EditMode.Type) {
   )
 }
 
-function openTabs(shortlinkName: string) {
-  openMultipleShortlinks(shortlinkName)
+async function openTabs(shortlinkName: string) {
+  await storage_api.openMultipleShortlinks(shortlinkName)
 }
 
 function handleOnChange(
@@ -326,10 +336,14 @@ function handleOnChange(
 }
 
 function handleOnMouseEnter(
-  urls: Urls[],
+  urls: Urls,
   setCurrentUrls: React.Dispatch<React.SetStateAction<string>>
 ) {
-  let urlsToDisplay = urls.map((url) => url.toString()).join(", ")
+  if (urls === undefined || urls.length === 0) return
+
+  console.log("handleOnMouseEnter => urls: ", urls)
+
+  let urlsToDisplay = urls.join(", ")
   let truncatedUrls = truncateWithEllipsis(urlsToDisplay, MAX_LENGTH_OF_URLS_TO_DISPLAY_ON_HOVER)
   console.log("truncatedUrls: ", truncatedUrls)
   setCurrentUrls(truncatedUrls)

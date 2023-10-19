@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "R3BL Shortlink",
   "description": "Make go links",
-  "version": "4.6",
+  "version": "4.7",
   "icons": {
     "16": "icon16.png",
     "32": "icon32.png",

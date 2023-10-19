@@ -21,42 +21,7 @@
  *   SOFTWARE.
  */
 
-// This function injects a delay, so that chrome storage rate limits are not hit.
-// https://developer.chrome.com/docs/extensions/reference/storage/#property-sync
-export async function delay() {
-  return new Promise((resolve) => setTimeout(resolve, 100))
-}
+import * as storage_api from "./storage_api"
+import * as storage_provider from "./storage_provider"
 
-// More info on index signatures:
-// https://www.typescriptlang.org/docs/handbook/2/objects.html#index-signatures
-export type StoredObject = {
-  [key: string]: StoredValue
-}
-
-export type StoredValue = {
-  urls: Urls
-  date: number
-  priority: number
-}
-
-export type Urls = string[]
-
-export interface Shortlink {
-  name: string
-  urls: Urls
-  date: number
-  priority: number
-}
-
-export namespace Option {
-  type Some<T> = {
-    kind: "some"
-    value: T
-  }
-
-  type None = {
-    kind: "none"
-  }
-
-  export type Type<T> = Some<T> | None
-}
+export { storage_api, storage_provider }
