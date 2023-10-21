@@ -21,9 +21,9 @@
  *   SOFTWARE.
  */
 
+import { openUrlsInTabs } from "../chrome_utils"
 import { copyToClipboard } from "../clipboard"
 import { extractMultipleShortlinkNames } from "../command"
-import { openUrlsInTabs } from "../omnibox"
 import { EditMode } from "../popup"
 import { Delays, Messages, showToast, triggerAutoCloseWindowWithDelay } from "../toast"
 import { Shortlink, StoredValue, Urls, delay } from "../types"

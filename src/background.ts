@@ -21,6 +21,13 @@
  *   SOFTWARE.
  */
 
-import { omniboxListener } from "./omnibox"
+import { openUrlsInTabs } from "./chrome_utils"
+import { getStorageProvider } from "./storage/storage_provider"
+import { StoredValue } from "./types"
+
+export async function omniboxListener(key: string) {
+  const value: StoredValue = await getStorageProvider().getOne(key)
+  openUrlsInTabs(value.urls)
+}
 
 chrome.omnibox.onInputEntered.addListener(omniboxListener)

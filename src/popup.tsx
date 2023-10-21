@@ -29,7 +29,7 @@ import { generateRandomName } from "./friendly-random-name-generator"
 import { storage_api, storage_provider } from "./storage"
 import "./style.css"
 import { Delays, Messages, showToast } from "./toast"
-import { Shortlink, Urls } from "./types"
+import { Shortlink, Urls, delay } from "./types"
 
 const MAX_LENGTH_OF_URLS_TO_DISPLAY_ON_HOVER = 75
 
@@ -61,7 +61,7 @@ function Popup() {
 
   // List all shortlinks.
   useEffect(() => {
-    console.log("init => load all shortlinks from chrome.storage.sync")
+    console.log("init => load all shortlinks from default storage provider")
     storage_provider
       .getStorageProvider()
       .getAll()
@@ -72,8 +72,8 @@ function Popup() {
 
   // Listen to changes in storage.
   useEffect(() => {
-    chrome.storage.sync.onChanged.addListener(() => {
-      console.log("init => chrome.storage.sync.onChanged.addListener")
+    storage_provider.getStorageProvider().addOnChangedListener(() => {
+      console.log("init => default storage provider.onChanged.addListener")
       storage_provider
         .getStorageProvider()
         .getAll()
@@ -85,7 +85,7 @@ function Popup() {
 
   // Update count badge when allShortlinks changes.
   useEffect(() => {
-    chrome.action.setBadgeText({ text: allShortlinks.length.toString() })
+    storage_provider.getStorageProvider().setBadgeText(allShortlinks.length.toString())
   }, [allShortlinks])
 
   const filteredShortlinks = searchText
@@ -214,7 +214,7 @@ function Popup() {
       case "debug": {
         // ::debug:: clear.
         if (command.arg === "clear") {
-          chrome.storage.sync.clear()
+          await storage_provider.getStorageProvider().clear()
         }
         // ::debug:: add <number>?
         else if (command.arg.startsWith("add")) {
@@ -222,7 +222,6 @@ function Popup() {
           console.log("it: ", it)
 
           let numberToAdd = 50
-          let delayMs = 10
 
           if (it.kind === "some") {
             let maybeNumber = parseInt(it.value)
@@ -235,14 +234,13 @@ function Popup() {
           // Add numberToAdd shortlinks here for testing using tryToSaveShortlink function.
           for (let i = 0; i < numberToAdd; i++) {
             let randomName = generateRandomName() + "-" + i
-            await storage_provider
-              .getStorageProvider()
-              .setOne(
-                randomName,
-                storage_api.createNewChromeStorageValue(["https://r3bl.com/?q=" + i])
-              )
+            await storage_provider.getStorageProvider().setOne(randomName, {
+              urls: ["https://r3bl.com/?q=" + i],
+              date: Date.now(),
+              priority: 0,
+            })
             // Wait for delayMs, to prevent Chrome from throttling this API call.
-            await new Promise((resolve) => setTimeout(resolve, delayMs))
+            await delay()
           }
         }
         return
@@ -358,7 +356,6 @@ function truncateWithEllipsis(str: string, maxLength: number): string {
 
 function main() {
   const root = createRoot(document.getElementById("root")!)
-
   root.render(
     <React.StrictMode>
       <Popup />

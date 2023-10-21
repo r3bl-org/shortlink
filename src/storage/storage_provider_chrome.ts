@@ -118,3 +118,15 @@ export async function setValueOnChromeStorage(key: string, value: StoredValue) {
 export async function removeFromSyncStorage(key: string) {
   await chrome.storage.sync.remove(key)
 }
+
+export async function clearSyncStorage() {
+  await chrome.storage.sync.clear()
+}
+
+export function addChromeStorageOnChangedListener(fun: () => void): void {
+  chrome.storage.onChanged.addListener(fun)
+}
+
+export function setChromeBadgeText(msg: string): void {
+  chrome.action.setBadgeText({ text: msg })
+}

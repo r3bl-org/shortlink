@@ -23,9 +23,12 @@
 
 import { Shortlink, StoredValue } from "../types"
 import {
+  addChromeStorageOnChangedListener,
+  clearSyncStorage as clearChromeStorage,
   getValueFromChromeStorage,
   loadAllShortlinksFromChromeStorage,
-  removeFromSyncStorage,
+  removeFromSyncStorage as removeFromChromeStorage,
+  setChromeBadgeText,
   setValueOnChromeStorage,
 } from "./storage_provider_chrome"
 
@@ -35,6 +38,9 @@ export type StorageProvider = {
   getOne(key: string): Promise<StoredValue>
   setOne(key: string, value: StoredValue): Promise<void>
   removeOne(key: string): Promise<void>
+  clear(): Promise<void>
+  addOnChangedListener(fun: () => void): void
+  setBadgeText(text: string): void
 }
 
 // Get the current storage provider.
@@ -56,6 +62,9 @@ function createChromeStorageProvider(): StorageProvider {
     getAll: loadAllShortlinksFromChromeStorage,
     getOne: getValueFromChromeStorage,
     setOne: setValueOnChromeStorage,
-    removeOne: removeFromSyncStorage,
+    removeOne: removeFromChromeStorage,
+    clear: clearChromeStorage,
+    addOnChangedListener: addChromeStorageOnChangedListener,
+    setBadgeText: setChromeBadgeText,
   }
 }

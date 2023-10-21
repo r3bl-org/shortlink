@@ -23,24 +23,8 @@
 
 import { Urls } from "./types"
 
-export function omniboxListener(shortlinkName: string) {
-  chrome.storage.sync.get(shortlinkName, (result) => {
-    const urls: Urls = result[shortlinkName]
-    // Found shortlink, open all urls in new tabs.
-    if (urls !== undefined && urls.length > 0) {
-      openUrlsInTabs(urls)
-    }
-    // No shortlink found, do nothing.
-    else {
-      console.log(`Shortlink '${shortlinkName}' does not exist`)
-      return
-    }
-  })
-}
-
 export function openUrlsInTabs(urls: Urls) {
   if (urls === undefined || urls.length === 0) return
-
   for (const url of urls) {
     if (url === undefined) {
       continue
