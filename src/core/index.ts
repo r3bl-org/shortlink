@@ -21,6 +21,11 @@
  *   SOFTWARE.
  */
 
-import * as storage_provider from "./storage_provider_api"
+import * as types from "./types"
+export { types }
 
-export { storage_provider }
+// This function injects a delay, so that chrome storage rate limits are not hit.
+// https://developer.chrome.com/docs/extensions/reference/storage/#property-sync
+export async function delay() {
+  return new Promise((resolve) => setTimeout(resolve, 100))
+}

@@ -21,14 +21,38 @@
  *   SOFTWARE.
  */
 
-import { Urls } from "./types"
+/**
+ * https://stackoverflow.com/a/59695008/2085356
+ * https://developer.chrome.com/docs/extensions/mv3/declare_permissions/
+ * https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Interact_with_the_clipboard#writing_to_the_clipboard
+ */
+export function copy(text: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    navigator.clipboard.writeText(text).then(
+      () => {
+        /* Clipboard successfully set. */
+        console.log("Copied to clipboard: " + text)
+        resolve()
+      },
+      () => {
+        /* Clipboard write failed, use fallback. */
+        fallbackCopy(text)
+        console.log("Copied to clipboard using fallback: " + text)
+        resolve()
+      }
+    )
+  })
+}
 
-export function openUrlsInTabs(urls: Urls) {
-  if (urls === undefined || urls.length === 0) return
-  for (const url of urls) {
-    if (url === undefined) {
-      continue
-    }
-    chrome.tabs.create({ url: url })
-  }
+/**
+ * Copy the short URL to the clipboard. This should never be called.
+ * More info: https://stackoverflow.com/questions/49618618/copy-current-url-to-clipboard
+ */
+const fallbackCopy = (text: string) => {
+  const dummy = document.createElement("input")
+  document.body.appendChild(dummy)
+  dummy.value = text
+  dummy.select()
+  document.execCommand("copy")
+  document.body.removeChild(dummy)
 }

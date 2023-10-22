@@ -21,7 +21,7 @@
  *   SOFTWARE.
  */
 
-import { Shortlink, StoredValue } from "../types"
+import { types } from "../core"
 import {
   addChromeStorageOnChangedListener,
   clearSyncStorage as clearChromeStorage,
@@ -30,13 +30,13 @@ import {
   removeFromSyncStorage as removeFromChromeStorage,
   setChromeBadgeText,
   setValueOnChromeStorage,
-} from "./storage_provider_chrome"
+} from "./storage_provider_internal_impl_chrome"
 
 // Interface that defines the methods that a storage provider must implement.
 export type StorageProvider = {
-  getAll(): Promise<Shortlink[]>
-  getOne(key: string): Promise<StoredValue>
-  setOne(key: string, value: StoredValue): Promise<void>
+  getAll(): Promise<types.Shortlink[]>
+  getOne(key: string): Promise<types.StoredValue>
+  setOne(key: string, value: types.StoredValue): Promise<void>
   removeOne(key: string): Promise<void>
   clear(): Promise<void>
   addOnChangedListener(fun: () => void): void

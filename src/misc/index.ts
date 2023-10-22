@@ -21,6 +21,5 @@
  *   SOFTWARE.
  */
 
-import * as storage_provider from "./storage_provider_api"
-
-export { storage_provider }
+import { generateRandomName } from "./random_names"
+export { generateRandomName }

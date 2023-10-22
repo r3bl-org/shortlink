@@ -21,7 +21,7 @@
  *   SOFTWARE.
  */
 
-import { extractMultipleShortlinkNames, validateShortlinkName } from "../command"
+import { extractMultipleShortlinkNames, validateShortlinkName } from "../app/command"
 
 test("validateShortlinkName replaces spaces and commas with underscores", () => {
   const input = "hello, wor-ld  , "

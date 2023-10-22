@@ -21,6 +21,9 @@
  *   SOFTWARE.
  */
 
-import * as storage_provider from "./storage_provider_api"
+import { App } from "./App"
+import * as command from "./command"
+import * as logic from "./logic"
+import * as toast from "./toast"
 
-export { storage_provider }
+export { App, command, logic, toast }

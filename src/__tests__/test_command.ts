@@ -21,7 +21,7 @@
  *   SOFTWARE.
  */
 
-import { Command, convertUserInputTextIntoCommand } from "../command"
+import { Command, convertUserInputTextIntoCommand } from "../app/command"
 
 describe("parse command", () => {
   it("can parse save <shortlink>", () => {
@@ -74,9 +74,31 @@ describe("parse command", () => {
     expect(command.arg).toBe("arg1 arg2")
   })
 
+  it("returns import for import", () => {
+    {
+      const command = convertUserInputTextIntoCommand("import") as Command.Import
+      expect(command.kind).toBe("import")
+    }
+    {
+      const command = convertUserInputTextIntoCommand("i") as Command.Import
+      expect(command.kind).toBe("import")
+    }
+  })
+
+  it("returns import for export", () => {
+    {
+      const command = convertUserInputTextIntoCommand("export") as Command.Export
+      expect(command.kind).toBe("export")
+    }
+
+    {
+      const command = convertUserInputTextIntoCommand("e") as Command.Export
+      expect(command.kind).toBe("export")
+    }
+  })
+
   it("returns save for unknown or invalid command", () => {
-    const command = convertUserInputTextIntoCommand("invalid") as Command.Save
+    const command = convertUserInputTextIntoCommand("oaiwejfaoiefh") as Command.Save
     expect(command.kind).toBe("save")
-    expect(command.shortlinkName).toBe("invalid")
   })
 })

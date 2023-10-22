@@ -21,6 +21,15 @@
  *   SOFTWARE.
  */
 
-import * as storage_provider from "./storage_provider_api"
+import { types } from "../core"
 
-export { storage_provider }
+// https://developer.chrome.com/docs/extensions/reference/tabs/#method-create
+export function openUrls(urls: types.Urls) {
+  if (urls === undefined || urls.length === 0) return
+  for (const url of urls) {
+    if (url === undefined) {
+      continue
+    }
+    chrome.tabs.create({ url: url })
+  }
+}

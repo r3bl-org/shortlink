@@ -21,13 +21,34 @@
  *   SOFTWARE.
  */
 
-import { openUrlsInTabs } from "./chrome_utils"
-import { getStorageProvider } from "./storage/storage_provider"
-import { StoredValue } from "./types"
+import { omniboxListener } from "./service_worker"
 
-export async function omniboxListener(key: string) {
-  const value: StoredValue = await getStorageProvider().getOne(key)
-  openUrlsInTabs(value.urls)
+// This connects the omnibox to the omniboxListener. `manifest.json` has an entry for this
+// file. To see console.log output for this service worker, go to chrome://extensions and
+// click the "service worker" link for this extension.
+function main() {
+  console.log("background.ts: main()")
+  printDebug()
+  console.log("background.ts => main(): attach omniboxListener")
+  chrome.omnibox.onInputEntered.addListener(omniboxListener)
 }
 
-chrome.omnibox.onInputEntered.addListener(omniboxListener)
+export function printDebug() {
+  if (typeof chrome !== "undefined") {
+    colorLog("chrome:", chrome)
+  } else {
+    console.log("background.ts => main(): chrome is undefined")
+  }
+
+  if (typeof document !== "undefined") {
+    colorLog("document:", document)
+  } else {
+    console.log("background.ts => main(): document is undefined")
+  }
+}
+
+function colorLog(msg: string, ...rest: any[]) {
+  console.log(`%c${msg}`, "color:yellow;font-style:bold", ...rest)
+}
+
+main()

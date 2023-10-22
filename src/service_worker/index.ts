@@ -21,6 +21,11 @@
  *   SOFTWARE.
  */
 
-import * as storage_provider from "./storage_provider_api"
+import { tabs } from "../browser_utils"
+import { types } from "../core"
+import { getStorageProvider } from "../storage/storage_provider_api"
 
-export { storage_provider }
+export async function omniboxListener(key: string) {
+  const value: types.StoredValue = await getStorageProvider().getOne(key)
+  tabs.openUrls(value.urls)
+}

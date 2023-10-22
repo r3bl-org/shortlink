@@ -21,6 +21,36 @@
  *   SOFTWARE.
  */
 
-import * as storage_provider from "./storage_provider_api"
+// More info on index signatures:
+// https://www.typescriptlang.org/docs/handbook/2/objects.html#index-signatures
+export type StoredObject = {
+  [key: string]: StoredValue
+}
 
-export { storage_provider }
+export type StoredValue = {
+  urls: Urls
+  date: number
+  priority: number
+}
+
+export type Urls = string[]
+
+export interface Shortlink {
+  name: string
+  urls: Urls
+  date: number
+  priority: number
+}
+
+export namespace Option {
+  type Some<T> = {
+    kind: "some"
+    value: T
+  }
+
+  type None = {
+    kind: "none"
+  }
+
+  export type Type<T> = Some<T> | None
+}

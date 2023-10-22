@@ -21,7 +21,7 @@
  *   SOFTWARE.
  */
 
-import { Shortlink, StoredObject, StoredValue, delay } from "../types"
+import { delay, types } from "../core"
 
 // This function retrieves all shortlinks from the Chrome storage and returns them as an
 // array of Shortlink objects. This array is sorted by priority.
@@ -31,13 +31,13 @@ import { Shortlink, StoredObject, StoredValue, delay } from "../types"
 // - an array of URLs associated with the shortlink,
 // - the date the shortlink was created, and
 // - the priority of the shortlink.
-export async function loadAllShortlinksFromChromeStorage(): Promise<Shortlink[]> {
-  const allItemsInStorage: StoredObject = await chrome.storage.sync.get(null)
+export async function loadAllShortlinksFromChromeStorage(): Promise<types.Shortlink[]> {
+  const allItemsInStorage: types.StoredObject = await chrome.storage.sync.get(null)
   console.log("loadAllShortlinksFromChromeStorage() => allItemsInStorage: ", allItemsInStorage)
 
-  const allShortlinkArray: Shortlink[] = []
+  const allShortlinkArray: types.Shortlink[] = []
   for (const key of Object.keys(allItemsInStorage)) {
-    const item: Shortlink = await importAndMigrateShortlinkFromChromeStorage(
+    const item: types.Shortlink = await importAndMigrateShortlinkFromChromeStorage(
       key,
       allItemsInStorage[key]
     )
@@ -46,8 +46,8 @@ export async function loadAllShortlinksFromChromeStorage(): Promise<Shortlink[]>
 
   return sortShortlinksByPriority(allShortlinkArray)
 
-  function sortShortlinksByPriority(shortlinks: Shortlink[]): Shortlink[] {
-    let sortedShortlinks: Shortlink[] = []
+  function sortShortlinksByPriority(shortlinks: types.Shortlink[]): types.Shortlink[] {
+    let sortedShortlinks: types.Shortlink[] = []
 
     sortedShortlinks = sortedShortlinks.sort((a, b) => {
       const nameComparison = b.name.localeCompare(a.name)
@@ -70,7 +70,7 @@ export async function loadAllShortlinksFromChromeStorage(): Promise<Shortlink[]>
   async function importAndMigrateShortlinkFromChromeStorage(
     key: string,
     value: any
-  ): Promise<Shortlink> {
+  ): Promise<types.Shortlink> {
     // The following fields were added in v4.7, so we need to check if they exist.
     let date = value.date ? value.date : Date.now()
     let priority = value.priority ? value.priority : 0
@@ -101,12 +101,14 @@ export async function loadAllShortlinksFromChromeStorage(): Promise<Shortlink[]>
     }
   }
 }
-export async function getValueFromChromeStorage(key: string): Promise<StoredValue> {
-  const item: StoredObject = await chrome.storage.sync.get(null)
-  return item[key] as StoredValue
+
+export async function getValueFromChromeStorage(key: string): Promise<types.StoredValue> {
+  const item: types.StoredObject = await chrome.storage.sync.get(null)
+  return item[key] as types.StoredValue
 }
-export async function setValueOnChromeStorage(key: string, value: StoredValue) {
-  const newObject: StoredObject = {
+
+export async function setValueOnChromeStorage(key: string, value: types.StoredValue) {
+  const newObject: types.StoredObject = {
     [key]: {
       urls: value.urls,
       date: value.date,
@@ -115,6 +117,7 @@ export async function setValueOnChromeStorage(key: string, value: StoredValue) {
   }
   await chrome.storage.sync.set(newObject)
 }
+
 export async function removeFromSyncStorage(key: string) {
   await chrome.storage.sync.remove(key)
 }

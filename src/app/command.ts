@@ -21,7 +21,7 @@
  *   SOFTWARE.
  */
 
-import { Option } from "./types"
+import { types } from "../core"
 
 // The string typed in the popup text input is parsed into a `Command.Type`.
 export namespace Command {
@@ -54,14 +54,12 @@ export namespace Command {
     arg: string
   }
 
-  export type Export={
+  export type Export = {
     kind: "export"
-    shortlinkName: string
   }
 
-  export type Import={
+  export type Import = {
     kind: "import"
-    shortlinkName: string
   }
 
   export type Type = Delete | Go | Save | Nothing | CopyToClipboard | Debug | Export | Import
@@ -78,11 +76,11 @@ export const CommandName = {
   Export: "export",
   ExportShort: "e",
   Import: "import",
-  ImportShort:"i",
+  ImportShort: "i",
   Debug: "::debug:: ",
 }
 
-export function tryToParse(commandName: string, userInputText: string): Option.Type<string> {
+export function tryToParse(commandName: string, userInputText: string): types.Option.Type<string> {
   if (userInputText.startsWith(commandName)) {
     const arg = userInputText.replace(commandName, "").trim()
     return {
@@ -144,7 +142,6 @@ export function convertUserInputTextIntoCommand(userInputText: string): Command.
   if (it.kind === "some") {
     return {
       kind: "export",
-      shortlinkName: it.value
     }
   }
 
@@ -153,28 +150,24 @@ export function convertUserInputTextIntoCommand(userInputText: string): Command.
   if (it.kind === "some") {
     return {
       kind: "export",
-      shortlinkName: it.value
     }
   }
 
-   // Import shortlink using `import`.
-   it = tryToParse(CommandName.Import, userInputText)
-   if (it.kind === "some") {
-     return {
-       kind: "import",
-       shortlinkName: it.value
-     }
-   }
- 
-   // Import shortlink using `i`.
-   it = tryToParse(CommandName.ImportShort, userInputText)
-   if (it.kind === "some") {
-     return {
-       kind: "import",
-       shortlinkName: it.value
-     }
-   }
+  // Import shortlink using `import`.
+  it = tryToParse(CommandName.Import, userInputText)
+  if (it.kind === "some") {
+    return {
+      kind: "import",
+    }
+  }
 
+  // Import shortlink using `i`.
+  it = tryToParse(CommandName.ImportShort, userInputText)
+  if (it.kind === "some") {
+    return {
+      kind: "import",
+    }
+  }
 
   // Copy shortlink using `copy`.
   it = tryToParse(CommandName.CopyToClipboard, userInputText)

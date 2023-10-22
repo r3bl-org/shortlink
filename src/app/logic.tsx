@@ -21,15 +21,80 @@
  *   SOFTWARE.
  */
 
-import { openUrlsInTabs } from "../chrome_utils"
-import { copyToClipboard } from "../clipboard"
-import { extractMultipleShortlinkNames } from "../command"
-import { EditMode } from "../popup"
-import { Delays, Messages, showToast, triggerAutoCloseWindowWithDelay } from "../toast"
-import { Shortlink, StoredValue, Urls, delay } from "../types"
-import { getStorageProvider } from "./storage_provider"
+import { default as React } from "react"
+import { logic, toast } from "."
+import { clipboard, tabs } from "../browser_utils"
+import { delay, types } from "../core"
+import { storage_provider } from "../storage"
+import { extractMultipleShortlinkNames } from "./command"
 
-export function createNewChromeStorageValue(urls: Urls): StoredValue {
+const MAX_LENGTH_OF_URLS_TO_DISPLAY_ON_HOVER = 75
+
+// Workaround for an enum w/ a method.
+export namespace EditMode {
+  export type Type = typeof Enabled | typeof Disabled
+
+  export const Enabled = {
+    state: "enabled",
+    toBoolean: true,
+  }
+
+  export const Disabled = {
+    state: "enabled",
+    toBoolean: false,
+  }
+}
+
+export async function openTabs(shortlinkName: string) {
+  await openMultipleShortlinks(shortlinkName)
+}
+
+export function handleOnChange(
+  event: React.ChangeEvent<HTMLInputElement>,
+  setUserInputText: React.Dispatch<React.SetStateAction<string>>
+) {
+  const typedText = event.target.value
+  console.log("typedText:", typedText)
+  setUserInputText(typedText)
+}
+
+export function handleOnMouseEnter(
+  urls: types.Urls,
+  setCurrentUrls: React.Dispatch<React.SetStateAction<string>>
+) {
+  if (urls === undefined || urls.length === 0) return
+
+  console.log("handleOnMouseEnter => urls: ", urls)
+
+  let urlsToDisplay = urls.join(", ")
+  let truncatedUrls = truncateWithEllipsis(urlsToDisplay, MAX_LENGTH_OF_URLS_TO_DISPLAY_ON_HOVER)
+  console.log("truncatedUrls: ", truncatedUrls)
+  setCurrentUrls(truncatedUrls)
+}
+
+function truncateWithEllipsis(str: string, maxLength: number): string {
+  if (str.length <= maxLength) {
+    return str
+  }
+  return `${str.slice(0, maxLength - 3)}...`
+}
+
+// Multiple shortlink names can be passed in using delimiter: `;`, `,` or space.
+export async function copyMultipleShortlinks(shortlinkArg: string) {
+  const names = extractMultipleShortlinkNames(shortlinkArg)
+  console.log("shortlink names to copy: ", names)
+  let urls: types.Urls = []
+  for (const name of names) {
+    let urlsForName: types.Urls = await getUrlsForShortlinkName(name)
+    urls = urls.concat(urlsForName)
+  }
+  const text = urls.join("\n")
+  await clipboard.copy(text)
+  toast.showToast(toast.Messages.copyToClipboard, toast.Delays.default, "success")
+  toast.triggerAutoCloseWindowWithDelay()
+}
+
+export function createNewChromeStorageValue(urls: types.Urls): types.StoredValue {
   return {
     urls: urls,
     date: Date.now(),
@@ -38,40 +103,40 @@ export function createNewChromeStorageValue(urls: Urls): StoredValue {
 }
 
 async function increaseExistingShortlinkPriority(key: string) {
-  const value: StoredValue = await getStorageProvider().getOne(key)
+  const value: types.StoredValue = await storage_provider.getStorageProvider().getOne(key)
 
-  const urls: Urls = value.urls
+  const urls: types.Urls = value.urls
   const priority: number = value.priority + 1
   const date: number = Date.now()
 
-  await getStorageProvider().setOne(key, {
+  await storage_provider.getStorageProvider().setOne(key, {
     urls: urls,
     date: date,
     priority: Math.min(priority, 1000), // Cap priority at 1000.
   })
 }
 
-export async function copyAllShortlinksToClipboard() {
+export async function exportShortlinksToJsonToClipboard() {
   try {
-    const allShortlinks: Shortlink[] = await getStorageProvider().getAll()
+    const allShortlinks: types.Shortlink[] = await storage_provider.getStorageProvider().getAll()
     const shortlinksSerialized = JSON.stringify(allShortlinks, null, 2)
-    await copyToClipboard(shortlinksSerialized)
-    showToast("All shortlinks copied to clipboard", Delays.default, "success")
+    await clipboard.copy(shortlinksSerialized)
+    toast.showToast("All shortlinks copied to clipboard", toast.Delays.default, "success")
   } catch (error) {
     console.error("Error copying shortlinks to clipboard:", error)
-    showToast("Error copying shortlinks to clipboard", Delays.default, "error")
+    toast.showToast("Error copying shortlinks to clipboard", toast.Delays.default, "error")
   }
 }
 
 export async function importShortlinksFromJson(jsonString: string) {
   try {
-    const parsedShortlinks = JSON.parse(jsonString) as Shortlink[]
+    const parsedShortlinks = JSON.parse(jsonString) as types.Shortlink[]
 
     console.log("parsedShortlinks: ", parsedShortlinks)
 
     if (!Array.isArray(parsedShortlinks)) {
       console.error("Invalid JSON format for shortlinks.")
-      showToast("Invalid JSON format for shortlinks", Delays.default, "error")
+      toast.showToast("Invalid JSON format for shortlinks", toast.Delays.default, "error")
       return
     }
 
@@ -82,39 +147,47 @@ export async function importShortlinksFromJson(jsonString: string) {
     for (const shortlink of parsedShortlinks) {
       if (!shortlink.name || !shortlink.urls) {
         console.error("Invalid shortlink format:", shortlink)
-        showToast("Invalid shortlink format", Delays.default, "error")
+        toast.showToast("Invalid shortlink format", toast.Delays.default, "error")
         continue
       }
 
       // Save each shortlink to storage
-      await getStorageProvider().setOne(shortlink.name, createNewChromeStorageValue(shortlink.urls))
+      await storage_provider
+        .getStorageProvider()
+        .setOne(shortlink.name, createNewChromeStorageValue(shortlink.urls))
       await delay()
 
       console.log("name: ", shortlink.name, ", urls: ", shortlink.urls)
     }
 
-    showToast("Shortlinks imported successfully", Delays.default, "success")
+    toast.showToast("Shortlinks imported successfully", toast.Delays.default, "success")
   } catch (error) {
     console.error("Error importing shortlinks:", error)
-    showToast("Error importing shortlinks", Delays.default, "error")
+    toast.showToast("Error importing shortlinks", toast.Delays.default, "error")
   }
 }
 
-export async function actuallySaveShortlink(shortlinkName: string, urls: Urls, overwrite: boolean) {
-  await getStorageProvider().setOne(shortlinkName, createNewChromeStorageValue(urls))
+export async function actuallySaveShortlink(
+  shortlinkName: string,
+  urls: types.Urls,
+  overwrite: boolean
+) {
+  await storage_provider
+    .getStorageProvider()
+    .setOne(shortlinkName, createNewChromeStorageValue(urls))
   if (overwrite) {
-    showToast(Messages.duplicateExists, Delays.default, "info")
+    toast.showToast(toast.Messages.duplicateExists, toast.Delays.default, "info")
   } else {
-    showToast(Messages.savingShortlink, Delays.default, "success")
+    toast.showToast(toast.Messages.savingShortlink, toast.Delays.default, "success")
   }
-  triggerAutoCloseWindowWithDelay()
+  toast.triggerAutoCloseWindowWithDelay()
 }
 
 export async function tryToSaveShortlink(newShortlinkName: string) {
   const tabs: chrome.tabs.Tab[] = await chrome.tabs.query({ currentWindow: true })
   const highlightedTabs: chrome.tabs.Tab[] = tabs.filter((tab) => tab.highlighted)
 
-  const urls: Urls = []
+  const urls: types.Urls = []
   for (const tab of highlightedTabs) {
     if (tab.url !== undefined) {
       urls.push(tab.url)
@@ -122,7 +195,9 @@ export async function tryToSaveShortlink(newShortlinkName: string) {
   }
 
   // Check if the shortlink already exists in sync storage.
-  const existingValue: StoredValue = await getStorageProvider().getOne(newShortlinkName)
+  const existingValue: types.StoredValue = await storage_provider
+    .getStorageProvider()
+    .getOne(newShortlinkName)
 
   if (existingValue !== undefined && existingValue.urls.length > 0) {
     // Shortlink already exists, ask the user if they want to overwrite it.
@@ -167,47 +242,54 @@ export async function openMultipleShortlinks(shortlinkArg: string) {
   const names = extractMultipleShortlinkNames(shortlinkArg)
   console.log("shortlink names to open: ", names)
 
-  let urls: Urls = []
+  let urls: types.Urls = []
 
   for (const name of names) {
     await increaseExistingShortlinkPriority(name)
-    let urlsForName: Urls = await getUrlsForShortlinkName(name)
+    let urlsForName: types.Urls = await getUrlsForShortlinkName(name)
     urls = urls.concat(urlsForName)
   }
 
-  openUrlsInTabs(urls)
+  tabs.openUrls(urls)
 }
 
-export async function deleteMultipleShortlinks(shortlinkArg: string, editMode: EditMode.Type) {
+export async function deleteMultipleShortlinks(
+  shortlinkArg: string,
+  editMode: logic.EditMode.Type
+) {
   const names = extractMultipleShortlinkNames(shortlinkArg)
 
   console.log("shortlink names to delete: ", names)
 
   // No arg provided.
   if (names === undefined || names.length === 0) {
-    showToast(`Please provide a shortlink name to delete`, Delays.default, "warning")
+    toast.showToast(`Please provide a shortlink name to delete`, toast.Delays.default, "warning")
   }
   // Arg provided.
   else {
     for (const name of names) {
-      await getStorageProvider().removeOne(name)
+      await storage_provider.getStorageProvider().removeOne(name)
     }
-    showToast(`Deleting shortlink(s) ${names.join(", ")}`, Delays.default, "info")
+    toast.showToast(`Deleting shortlink(s) ${names.join(", ")}`, toast.Delays.default, "info")
 
     // Do not close this popup if we are in edit mode.
-    if (editMode === EditMode.Disabled) {
-      triggerAutoCloseWindowWithDelay()
+    if (editMode === logic.EditMode.Disabled) {
+      toast.triggerAutoCloseWindowWithDelay()
     }
   }
 }
 
 export async function editShortlink(shortlinkName: string) {
   // Retrieve the existing URLs for the specified shortlinkName.
-  const existingUrls: Urls = await getUrlsForShortlinkName(shortlinkName)
+  const existingUrls: types.Urls = await getUrlsForShortlinkName(shortlinkName)
   console.log("existingUrls: ", existingUrls)
 
   if (existingUrls.length === 0) {
-    showToast(`Shortlink '${shortlinkName}' not found. Cannot edit.`, Delays.default, "warning")
+    toast.showToast(
+      `Shortlink '${shortlinkName}' not found. Cannot edit.`,
+      toast.Delays.default,
+      "warning"
+    )
     return
   }
 
@@ -229,15 +311,19 @@ export async function editShortlink(shortlinkName: string) {
     .filter((url) => url !== "")
 
   // Update the shortlink with the new URLs.
-  await getStorageProvider().setOne(shortlinkName, createNewChromeStorageValue(newUrls))
+  await storage_provider
+    .getStorageProvider()
+    .setOne(shortlinkName, createNewChromeStorageValue(newUrls))
 
-  showToast(`Shortlink '${shortlinkName}' updated.`, Delays.default, "success")
-  triggerAutoCloseWindowWithDelay()
+  toast.showToast(`Shortlink '${shortlinkName}' updated.`, toast.Delays.default, "success")
+  toast.triggerAutoCloseWindowWithDelay()
 }
 
-export async function getUrlsForShortlinkName(shortlinkName: string): Promise<Urls> {
+export async function getUrlsForShortlinkName(shortlinkName: string): Promise<types.Urls> {
   try {
-    const value: StoredValue = await getStorageProvider().getOne(shortlinkName)
+    const value: types.StoredValue = await storage_provider
+      .getStorageProvider()
+      .getOne(shortlinkName)
     console.log("getUrlsForShortlinkName: ", shortlinkName)
     console.log("result: ", value.urls)
     return value.urls
