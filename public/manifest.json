@@ -34,10 +34,5 @@
       "description": "Make a go link for URL in address bar"
     }
   },
-  "permissions": [
-    "activeTab",
-    "tabs",
-    "storage",
-    "clipboardWrite"
-  ]
+  "permissions": ["activeTab", "tabs", "storage", "clipboardWrite", "downloads"]
 }

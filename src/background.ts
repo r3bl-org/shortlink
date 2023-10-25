@@ -31,6 +31,13 @@ function main() {
   printDebug()
   console.log("background.ts => main(): attach omniboxListener")
   chrome.omnibox.onInputEntered.addListener(omniboxListener)
+  chrome.runtime.onMessage.addListener(function (arg, sender, sendResponse) {
+    chrome.downloads.download({
+      url: "data:application/json," + encodeURIComponent(arg.shortlinksSerialized),
+      filename: "shortlinks.json",
+      body: arg.shortlinksSerialized,
+    })
+  })
 }
 
 export function printDebug() {
