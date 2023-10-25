@@ -121,6 +121,7 @@ export async function exportShortlinksToJsonToClipboard() {
     const allShortlinks: types.Shortlink[] = await storage_provider.getStorageProvider().getAll()
     const shortlinksSerialized = JSON.stringify(allShortlinks, null, 2)
     await clipboard.copy(shortlinksSerialized)
+    chrome.runtime.sendMessage({ shortlinksSerialized })
     toast.showToast("All shortlinks copied to clipboard", toast.Delays.default, "success")
   } catch (error) {
     console.error("Error copying shortlinks to clipboard:", error)
