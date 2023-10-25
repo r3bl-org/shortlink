@@ -84,8 +84,6 @@ export function App() {
 
   const showCurrentUrlsDiv = currentUrls.length > 0
 
-  return renderMain()
-
   // Render functions.
 
   function renderMain() {
@@ -174,7 +172,12 @@ export function App() {
   function renderImportView(): React.ReactNode {
     return (
       <div className="editor-wrapper">
-        <textarea className="textarea-json" placeholder="Enter JSON here ..." ref={textareaRef} />
+        <textarea
+          className="textarea-json"
+          placeholder="Enter JSON here or drag and drop a JSON file here."
+          ref={textareaRef}
+          onDrop={handleDrop}
+        />
         <button className="save-btn" onClick={handleJsonSave}>
           📥 Save Shortlink
         </button>
@@ -225,10 +228,30 @@ export function App() {
 
   // Handlers.
 
+  function handleDrop(event: React.DragEvent<HTMLTextAreaElement>) {
+    event.preventDefault()
+    const dataTransfer = event.dataTransfer
+    if (dataTransfer.items) {
+      const file = dataTransfer.items[0].getAsFile()
+      if (file) {
+        const reader = new FileReader()
+        reader.onload = function (event) {
+          if (event.target) {
+            const result = event.target.result
+            if (typeof result === "string") {
+              textareaRef.current!.value = result
+            }
+          }
+        }
+        reader.readAsText(file)
+      }
+    }
+  }
+
   async function handleJsonSave() {
-    let it = textareaRef.current
-    if (it !== null && it.value !== "") {
-      const textareaValue = it.value
+    let content = textareaRef.current
+    if (content !== null && content.value !== "") {
+      const textareaValue = content.value
       await importShortlinksFromJson(textareaValue)
       setShowImportField(false)
     }
@@ -313,4 +336,6 @@ export function App() {
       }
     }
   }
+
+  return renderMain()
 }
