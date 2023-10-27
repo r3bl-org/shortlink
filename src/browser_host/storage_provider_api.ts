@@ -24,16 +24,20 @@
 import { types } from "../core"
 import {
   addChromeStorageOnChangedListener,
+  attachChromeOmniboxListener,
+  attachChromeOnMessageListener,
   clearSyncStorage as clearChromeStorage,
+  downloadFileInChrome,
   getValueFromChromeStorage,
   loadAllShortlinksFromChromeStorage,
   removeFromSyncStorage as removeFromChromeStorage,
+  sendMessageToChromeServiceWorker,
   setChromeBadgeText,
   setValueOnChromeStorage,
 } from "./storage_provider_internal_impl_chrome"
 
 // Interface that defines the methods that a storage provider must implement.
-export type StorageProvider = {
+export type BrowserHostProvider = {
   getAll(): Promise<types.Shortlink[]>
   getOne(key: string): Promise<types.StoredValue>
   setOne(key: string, value: types.StoredValue): Promise<void>
@@ -41,23 +45,27 @@ export type StorageProvider = {
   clear(): Promise<void>
   addOnChangedListener(fun: () => void): void
   setBadgeText(text: string): void
+  sendMessage(arg: Object): void
+  attachOmniboxInputListener(fun: (text: string) => void): void
+  attachServiceWorkerListener(fun: (arg: any) => void): void
+  downloadFileInServiceWorker(arg: any): void
 }
 
-// Get the current storage provider.
-export function getStorageProvider(): StorageProvider {
-  return STORAGE_PROVIDER
+// Get the current browser host provider.
+export function getBrowserHostProvider(): BrowserHostProvider {
+  return BROWSER_HOST_PROVIDER
 }
 
-// Set the current storage provider. This can be used for testing or to support other
+// Set the current browser host provider. This can be used for testing or to support other
 // browsers.
-export function setStorageProvider(storageProvider: StorageProvider) {
-  STORAGE_PROVIDER = storageProvider
+export function setBrowserHostProvider(browserHostProvider: BrowserHostProvider) {
+  BROWSER_HOST_PROVIDER = browserHostProvider
 }
 
-let STORAGE_PROVIDER: StorageProvider = createChromeStorageProvider()
+let BROWSER_HOST_PROVIDER: BrowserHostProvider = createChromeStorageProvider()
 
 // This function returns the default storage provider, which is Chrome storage.
-function createChromeStorageProvider(): StorageProvider {
+function createChromeStorageProvider(): BrowserHostProvider {
   return {
     getAll: loadAllShortlinksFromChromeStorage,
     getOne: getValueFromChromeStorage,
@@ -66,5 +74,9 @@ function createChromeStorageProvider(): StorageProvider {
     clear: clearChromeStorage,
     addOnChangedListener: addChromeStorageOnChangedListener,
     setBadgeText: setChromeBadgeText,
+    sendMessage: sendMessageToChromeServiceWorker,
+    attachOmniboxInputListener: attachChromeOmniboxListener,
+    attachServiceWorkerListener: attachChromeOnMessageListener,
+    downloadFileInServiceWorker: downloadFileInChrome,
   }
 }

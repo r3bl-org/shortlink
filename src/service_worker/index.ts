@@ -21,11 +21,11 @@
  *   SOFTWARE.
  */
 
+import { getBrowserHostProvider } from "../browser_host/storage_provider_api"
 import { tabs } from "../browser_utils"
 import { types } from "../core"
-import { getStorageProvider } from "../storage/storage_provider_api"
 
 export async function omniboxListener(key: string) {
-  const value: types.StoredValue = await getStorageProvider().getOne(key)
+  const value: types.StoredValue = await getBrowserHostProvider().getOne(key)
   tabs.openUrls(value.urls)
 }

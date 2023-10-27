@@ -21,6 +21,7 @@
  *   SOFTWARE.
  */
 
+import { getBrowserHostProvider } from "./browser_host/storage_provider_api"
 import { omniboxListener } from "./service_worker"
 
 // This connects the omnibox to the omniboxListener. `manifest.json` has an entry for this
@@ -30,14 +31,15 @@ function main() {
   console.log("background.ts: main()")
   printDebug()
   console.log("background.ts => main(): attach omniboxListener")
-  chrome.omnibox.onInputEntered.addListener(omniboxListener)
-  chrome.runtime.onMessage.addListener(function (arg, sender, sendResponse) {
-    chrome.downloads.download({
+  const provider = getBrowserHostProvider()
+  provider.attachOmniboxInputListener(omniboxListener)
+  provider.attachServiceWorkerListener((arg: any) =>
+    provider.downloadFileInServiceWorker({
       url: "data:application/json," + encodeURIComponent(arg.shortlinksSerialized),
       filename: "shortlinks.json",
       body: arg.shortlinksSerialized,
     })
-  })
+  )
 }
 
 export function printDebug() {

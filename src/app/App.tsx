@@ -23,9 +23,9 @@
 
 import { default as React, useEffect, useRef, useState } from "react"
 import { command, toast } from "."
+import { storage_provider } from "../browser_host"
 import { delay, types } from "../core"
 import { generateRandomName } from "../misc/random_names"
-import { storage_provider } from "../storage"
 import {
   EditMode,
   copyMultipleShortlinks,
@@ -53,7 +53,7 @@ export function App() {
   useEffect(() => {
     console.log("init => load all shortlinks from default storage provider")
     storage_provider
-      .getStorageProvider()
+      .getBrowserHostProvider()
       .getAll()
       .then((allShortlinks) => {
         setAllShortlinks(allShortlinks)
@@ -62,10 +62,10 @@ export function App() {
 
   // Listen to changes in storage.
   useEffect(() => {
-    storage_provider.getStorageProvider().addOnChangedListener(() => {
+    storage_provider.getBrowserHostProvider().addOnChangedListener(() => {
       console.log("init => default storage provider.onChanged.addListener")
       storage_provider
-        .getStorageProvider()
+        .getBrowserHostProvider()
         .getAll()
         .then((allShortlinks) => {
           setAllShortlinks(allShortlinks)
@@ -75,7 +75,7 @@ export function App() {
 
   // Update count badge when allShortlinks changes.
   useEffect(() => {
-    storage_provider.getStorageProvider().setBadgeText(allShortlinks.length.toString())
+    storage_provider.getBrowserHostProvider().setBadgeText(allShortlinks.length.toString())
   }, [allShortlinks])
 
   const filteredShortlinks = searchText
@@ -302,7 +302,7 @@ export function App() {
       case "debug": {
         // ::debug:: clear.
         if (userInputCommand.arg === "clear") {
-          await storage_provider.getStorageProvider().clear()
+          await storage_provider.getBrowserHostProvider().clear()
         }
 
         // ::debug:: add <number>?
@@ -323,7 +323,7 @@ export function App() {
           // Add numberToAdd shortlinks here for testing using tryToSaveShortlink function.
           for (let i = 0; i < numberToAdd; i++) {
             let randomName = generateRandomName() + "-" + i
-            await storage_provider.getStorageProvider().setOne(randomName, {
+            await storage_provider.getBrowserHostProvider().setOne(randomName, {
               urls: ["https://r3bl.com/?q=" + i],
               date: Date.now(),
               priority: 0,

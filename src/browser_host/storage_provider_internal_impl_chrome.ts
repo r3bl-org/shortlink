@@ -133,3 +133,19 @@ export function addChromeStorageOnChangedListener(fun: () => void): void {
 export function setChromeBadgeText(msg: string): void {
   chrome.action.setBadgeText({ text: msg })
 }
+
+export function sendMessageToChromeServiceWorker(arg: Object): void {
+  chrome.runtime.sendMessage(arg)
+}
+
+export function attachChromeOmniboxListener(fun: (text: string) => void): void {
+  chrome.omnibox.onInputEntered.addListener(fun)
+}
+
+export function attachChromeOnMessageListener(fun: (arg: any) => void): void {
+  chrome.runtime.onMessage.addListener(fun)
+}
+
+export function downloadFileInChrome(arg: any) {
+  chrome.downloads.download(arg)
+}

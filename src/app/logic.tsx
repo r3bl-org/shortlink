@@ -23,9 +23,10 @@
 
 import { default as React } from "react"
 import { logic, toast } from "."
+import { storage_provider } from "../browser_host"
+import { getBrowserHostProvider } from "../browser_host/storage_provider_api"
 import { clipboard, tabs } from "../browser_utils"
 import { delay, types } from "../core"
-import { storage_provider } from "../storage"
 import { extractMultipleShortlinkNames } from "./command"
 
 const MAX_LENGTH_OF_URLS_TO_DISPLAY_ON_HOVER = 75
@@ -103,13 +104,13 @@ export function createNewChromeStorageValue(urls: types.Urls): types.StoredValue
 }
 
 async function increaseExistingShortlinkPriority(key: string) {
-  const value: types.StoredValue = await storage_provider.getStorageProvider().getOne(key)
+  const value: types.StoredValue = await storage_provider.getBrowserHostProvider().getOne(key)
 
   const urls: types.Urls = value.urls
   const priority: number = value.priority + 1
   const date: number = Date.now()
 
-  await storage_provider.getStorageProvider().setOne(key, {
+  await storage_provider.getBrowserHostProvider().setOne(key, {
     urls: urls,
     date: date,
     priority: Math.min(priority, 1000), // Cap priority at 1000.
@@ -118,10 +119,12 @@ async function increaseExistingShortlinkPriority(key: string) {
 
 export async function exportShortlinksToJsonToClipboard() {
   try {
-    const allShortlinks: types.Shortlink[] = await storage_provider.getStorageProvider().getAll()
+    const allShortlinks: types.Shortlink[] = await storage_provider
+      .getBrowserHostProvider()
+      .getAll()
     const shortlinksSerialized = JSON.stringify(allShortlinks, null, 2)
     await clipboard.copy(shortlinksSerialized)
-    chrome.runtime.sendMessage({ shortlinksSerialized })
+    getBrowserHostProvider().sendMessage({ shortlinksSerialized })
     toast.showToast("All shortlinks copied to clipboard", toast.Delays.default, "success")
   } catch (error) {
     console.error("Error copying shortlinks to clipboard:", error)
@@ -154,7 +157,7 @@ export async function importShortlinksFromJson(jsonString: string) {
 
       // Save each shortlink to storage
       await storage_provider
-        .getStorageProvider()
+        .getBrowserHostProvider()
         .setOne(shortlink.name, createNewChromeStorageValue(shortlink.urls))
       await delay()
 
@@ -174,7 +177,7 @@ export async function actuallySaveShortlink(
   overwrite: boolean
 ) {
   await storage_provider
-    .getStorageProvider()
+    .getBrowserHostProvider()
     .setOne(shortlinkName, createNewChromeStorageValue(urls))
   if (overwrite) {
     toast.showToast(toast.Messages.duplicateExists, toast.Delays.default, "info")
@@ -197,7 +200,7 @@ export async function tryToSaveShortlink(newShortlinkName: string) {
 
   // Check if the shortlink already exists in sync storage.
   const existingValue: types.StoredValue = await storage_provider
-    .getStorageProvider()
+    .getBrowserHostProvider()
     .getOne(newShortlinkName)
 
   if (existingValue !== undefined && existingValue.urls.length > 0) {
@@ -269,7 +272,7 @@ export async function deleteMultipleShortlinks(
   // Arg provided.
   else {
     for (const name of names) {
-      await storage_provider.getStorageProvider().removeOne(name)
+      await storage_provider.getBrowserHostProvider().removeOne(name)
     }
     toast.showToast(`Deleting shortlink(s) ${names.join(", ")}`, toast.Delays.default, "info")
 
@@ -313,7 +316,7 @@ export async function editShortlink(shortlinkName: string) {
 
   // Update the shortlink with the new URLs.
   await storage_provider
-    .getStorageProvider()
+    .getBrowserHostProvider()
     .setOne(shortlinkName, createNewChromeStorageValue(newUrls))
 
   toast.showToast(`Shortlink '${shortlinkName}' updated.`, toast.Delays.default, "success")
@@ -323,7 +326,7 @@ export async function editShortlink(shortlinkName: string) {
 export async function getUrlsForShortlinkName(shortlinkName: string): Promise<types.Urls> {
   try {
     const value: types.StoredValue = await storage_provider
-      .getStorageProvider()
+      .getBrowserHostProvider()
       .getOne(shortlinkName)
     console.log("getUrlsForShortlinkName: ", shortlinkName)
     console.log("result: ", value.urls)
