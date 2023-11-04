@@ -104,7 +104,7 @@ export function App() {
   function renderViewMode(): React.ReactNode {
     return (
       <div className="shortlink-container" onMouseLeave={() => setCurrentUrls("")}>
-        {allShortlinks.map((shortlink) => (
+        {filteredShortlinks.map((shortlink) => (
           <code key={shortlink.name} className="shortlink">
             <div
               className="shortlink-link"
