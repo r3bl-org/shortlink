@@ -65,19 +65,20 @@ export namespace Command {
   export type Type = Delete | Go | Save | Nothing | CopyToClipboard | Debug | Export | Import
 }
 
-// This is typed by the user in the popup text input.
+// This is typed by the user in the popup text input. Note that most of these commands are
+// terminated by an empty space character.
 export const CommandName = {
-  Go: "go ",
-  GoShort: "g ",
-  Delete: "delete ",
-  DeleteShort: "d ",
-  CopyToClipboard: "copy ",
-  CopyToClipboardShort: "c ",
-  Export: "export",
-  ExportShort: "e",
-  Import: "import",
-  ImportShort: "i",
-  Debug: "::debug:: ",
+  Go:                    "go ",
+  GoShort:               "g ",
+  Delete:                "delete ",
+  DeleteShort:           "d ",
+  CopyToClipboard:       "copy ",
+  CopyToClipboardShort:  "c ",
+  Export:                "export ",
+  ExportShort:           "e ",
+  Import:                "import ",
+  ImportShort:           "i ",
+  Debug:                 "::debug:: ",
 }
 
 export function tryToParse(commandName: string, userInputText: string): types.Option.Type<string> {
