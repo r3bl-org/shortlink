@@ -106,3 +106,10 @@ Load `dist` directory.
 ## Test
 
 Run `npx jest` or `npm run test`.
+
+## Firefox version
+
+- [Listing](https://addons.mozilla.org/en-US/developers/addon/r3bl-shortlink/)
+- [PR with changes made for this version](https://github.com/r3bl-org/shortlink/pull/40)
+- [Info on porting from chrome to firefox extension](https://decembergarnetsmith.com/2024/05/10/how-to-port-an-mv3-chrome-extension-to-firefox/)
+- [Differences between chrome and firefox extensions](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/background#browser_support)

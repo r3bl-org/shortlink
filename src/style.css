@@ -30,14 +30,17 @@
   --default-padding: 8px;
   --default-border-radius: 6px;
   --default-border-style: 2px solid rgb(119, 129, 147);
-  --max-height-of-popup: 300px;
-  width: 750px;
   --default-animation-duration: 0.5s;
+  --popup-min-height: 600px;
+  --popup-min-width: 800px;
+}
+
+html {
+  min-height: var(--popup-min-height);
+  min-width: var(--popup-min-width);
 }
 
 body {
-  width: 100%;
-  height: 100%;
   margin: var(--default-margin);
   padding: var(--default-padding);
   background: #5f6176;
@@ -48,7 +51,6 @@ body {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  max-height: var(--max-height-of-popup);
   overflow-y: auto;
 }
 

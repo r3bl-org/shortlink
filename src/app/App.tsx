@@ -42,6 +42,7 @@ import {
 
 export function App() {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const inputReference = useRef<HTMLInputElement>(null);
   const [allShortlinks, setAllShortlinks] = useState<types.Shortlink[]>([])
   const [userInputText, setUserInputText] = useState<string>("")
   const [searchText, setSearchText] = useState<string>("")
@@ -78,6 +79,11 @@ export function App() {
     storage_provider.getBrowserHostProvider().setBadgeText(allShortlinks.length.toString())
   }, [allShortlinks])
 
+  // Focus input on load.
+  useEffect(() => {
+    inputReference?.current?.focus();
+  }, [])
+
   const filteredShortlinks = searchText
     ? allShortlinks.filter((shortlink) => shortlink.name.match(new RegExp(searchText, "i")))
     : allShortlinks
@@ -90,6 +96,7 @@ export function App() {
     return (
       <div id="app">
         <input
+          ref={inputReference}
           autoFocus={true}
           id="shortlink-input"
           placeholder='Type a name for your tab(s) or "copy/c, go/g, delete/d <name>" => Enter'
