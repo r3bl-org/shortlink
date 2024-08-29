@@ -15,10 +15,11 @@
 # limitations under the License.
 #
 
-# Chrome.
-rm shortlink.zip
+# Firefox.
 rm -rf dist
 npm run build
 cd dist
-zip ../shortlink.zip -r .
+web-ext build --overwrite-dest
+web-ext sign --api-key=$MOZ_AMO_KEY --api-secret=$MOZ_AMO_SECRET --channel unlisted
+cp web-ext-artifacts/r3bl_shortlink-*.xpi ../
 cd ..

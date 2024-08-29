@@ -27,5 +27,5 @@ export { types }
 // This function injects a delay, so that chrome storage rate limits are not hit.
 // https://developer.chrome.com/docs/extensions/reference/storage/#property-sync
 export async function delay() {
-  return new Promise((resolve) => setTimeout(resolve, 100))
+  return new Promise((resolve) => setTimeout(resolve, 500))
 }
