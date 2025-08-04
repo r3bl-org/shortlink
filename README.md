@@ -1,4 +1,4 @@
-# Shortcut - a browser extension written in Typescript and React
+# R3BL Shortlink - a browser extension written in Typescript and React
 
 Table of contents:
 
